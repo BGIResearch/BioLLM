@@ -1,0 +1,257 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>biollm.base.load_llm &mdash; BioLLM 0.1.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=a58bc63e"></script>
+      <script src="../../../_static/doctools.js?v=9a2dae69"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            BioLLM
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Getting Started:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Tutorials:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../Cell_embedding.html">Evaluation of the clustering of the embed cell.</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../GRN.html">GRN</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../Annotation.html">Annotation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../drug_task.html">Drug Annotation Task Documentation</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api.html">BioLLM Modules</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">References:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../download.html">Download the scFM pretrain model and configs</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">BioLLM</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">biollm.base.load_llm</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for biollm.base.load_llm</h1><div class="highlight"><pre>
+<span></span><span class="ch">#!/usr/bin/env python3</span>
+<span class="c1"># coding: utf-8</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">@author: Ping Qiu  qiuping1@genomics.cn</span>
+<span class="sd">@last modified by: Ping Qiu</span>
+<span class="sd">@file: load_llm.py</span>
+<span class="sd">@time: 2024/3/3 11:01</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">biollm.utils.log_manager</span> <span class="kn">import</span> <span class="n">LogManager</span>
+<span class="kn">from</span> <span class="nn">biollm.utils.utils</span> <span class="kn">import</span> <span class="n">load_config</span>
+<span class="kn">import</span> <span class="nn">torch</span>
+<span class="kn">import</span> <span class="nn">wandb</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">re</span>
+
+
+<div class="viewcode-block" id="LoadLlm">
+<a class="viewcode-back" href="../../../api.html#biollm.base.load_llm.LoadLlm">[docs]</a>
+<span class="k">class</span> <span class="nc">LoadLlm</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    The LoadLlm class provides the foundational structure for loading, initializing, and managing</span>
+<span class="sd">    large language models (LLMs) within the BioLLM framework. It supports model configuration loading,</span>
+<span class="sd">    parameter initialization from pre-trained weights, and enables flexible integration with tracking</span>
+<span class="sd">    platforms like Weights &amp; Biases for logging and experiment management.</span>
+
+<span class="sd">    Attributes:</span>
+<span class="sd">        logger (Logger): Logger instance for logging information during model operations.</span>
+<span class="sd">        args (Namespace): Parsed arguments loaded from configuration file or provided as input.</span>
+<span class="sd">        model (torch.nn.Module or None): Model instance, initialized after loading pre-trained weights.</span>
+<span class="sd">        vocab (dict or None): Vocabulary mapping for model inputs, set by derived classes if applicable.</span>
+<span class="sd">        is_master (bool): Flag indicating if the process is the master process in distributed settings.</span>
+<span class="sd">        wandb (wandb.Run or None): Weights &amp; Biases tracking instance, initialized if tracking is enabled.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="fm">__int__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">cfs_file</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initializes the LoadLlm class, setting up logging, configuration loading, and tracking if specified.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            args (Namespace, optional): Model and task configuration parameters. If None, loads from file.</span>
+<span class="sd">            cfs_file (str, optional): Path to the configuration file. Required if args is None.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            ValueError: If both args and cfs_file are None.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span> <span class="o">=</span> <span class="n">LogManager</span><span class="p">()</span><span class="o">.</span><span class="n">logger</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">args</span> <span class="o">=</span> <span class="n">args</span> <span class="k">if</span> <span class="n">args</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">load_config</span><span class="p">(</span><span class="n">cfs_file</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">vocab</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">is_master</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s1">&#39;RANK&#39;</span><span class="p">])</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">if</span> <span class="s1">&#39;RANK&#39;</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span> <span class="k">else</span> <span class="kc">True</span>
+        <span class="k">if</span> <span class="s1">&#39;weight_bias_track&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">weight_bias_track</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_master</span><span class="p">:</span>
+            <span class="n">wandb</span><span class="o">.</span><span class="n">init</span><span class="p">(</span><span class="n">project</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">project_name</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">exp_name</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">wandb</span> <span class="o">=</span> <span class="n">wandb</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">wandb</span> <span class="o">=</span> <span class="kc">None</span>
+
+<div class="viewcode-block" id="LoadLlm.load_pretrain_model">
+<a class="viewcode-back" href="../../../api.html#biollm.base.load_llm.LoadLlm.load_pretrain_model">[docs]</a>
+    <span class="k">def</span> <span class="nf">load_pretrain_model</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model_file</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">load_param_prefixs</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Loads pre-trained weights into the model, selectively loading parameters that match</span>
+<span class="sd">        the current model&#39;s architecture.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            model_file (str): Path to the file containing pre-trained model weights.</span>
+<span class="sd">            model (torch.nn.Module, optional): Model instance to load weights into.</span>
+<span class="sd">                If None, uses the class&#39;s model attribute.</span>
+<span class="sd">            load_param_prefixs (list of str, optional): List of parameter prefixes to selectively load.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            torch.nn.Module: The model with updated weights from the pre-trained file.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            FileNotFoundError: If the model file is not found.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># only load params that are in the model and match the size</span>
+        <span class="n">model</span> <span class="o">=</span> <span class="n">model</span> <span class="k">if</span> <span class="n">model</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span>
+        <span class="n">model_dict</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">state_dict</span><span class="p">()</span>
+        <span class="n">pretrained_dict</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">model_file</span><span class="p">,</span> <span class="n">map_location</span><span class="o">=</span><span class="s1">&#39;cpu&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="s1">&#39;model_state_dict&#39;</span> <span class="ow">in</span> <span class="n">pretrained_dict</span><span class="p">:</span>
+            <span class="n">pretrained_dict</span> <span class="o">=</span> <span class="n">pretrained_dict</span><span class="p">[</span><span class="s1">&#39;model_state_dict&#39;</span><span class="p">]</span>
+        <span class="n">pretrained_dict</span> <span class="o">=</span> <span class="p">{</span><span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;module.&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">k</span><span class="p">):</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">pretrained_dict</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+        <span class="k">if</span> <span class="n">load_param_prefixs</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">pretrained_dict</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="n">k</span><span class="p">:</span> <span class="n">v</span>
+                <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">pretrained_dict</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+                <span class="k">if</span> <span class="nb">any</span><span class="p">([</span><span class="n">k</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">prefix</span><span class="p">)</span> <span class="k">for</span> <span class="n">prefix</span> <span class="ow">in</span> <span class="n">load_param_prefixs</span><span class="p">])</span>
+            <span class="p">}</span>
+        <span class="n">pretrained_dict</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="n">k</span><span class="p">:</span> <span class="n">v</span>
+            <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">pretrained_dict</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">model_dict</span> <span class="ow">and</span> <span class="n">v</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="n">model_dict</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span>
+        <span class="p">}</span>
+        <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">pretrained_dict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Loading params </span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s2"> with shape </span><span class="si">{</span><span class="n">v</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">model_dict</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">pretrained_dict</span><span class="p">)</span>
+        <span class="n">model</span><span class="o">.</span><span class="n">load_state_dict</span><span class="p">(</span><span class="n">model_dict</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">model</span></div>
+
+
+<div class="viewcode-block" id="LoadLlm.init_model">
+<a class="viewcode-back" href="../../../api.html#biollm.base.load_llm.LoadLlm.init_model">[docs]</a>
+    <span class="k">def</span> <span class="nf">init_model</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initializes the model with pre-trained weights if specified in the configuration.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            model (torch.nn.Module, optional): The model instance to initialize. Defaults to the class&#39;s model.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            torch.nn.Module: The initialized model, with weights loaded if specified in the configuration.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">load_param_prefixs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">load_param_prefixs</span> <span class="k">if</span> <span class="s1">&#39;load_param_prefixs&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span> <span class="k">else</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="s1">&#39;model_file&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">:</span>
+            <span class="n">model</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">load_pretrain_model</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="s1">&#39;model_file&#39;</span><span class="p">],</span> <span class="n">model</span><span class="p">,</span> <span class="n">load_param_prefixs</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">model</span></div>
+
+
+<div class="viewcode-block" id="LoadLlm.get_embedding">
+<a class="viewcode-back" href="../../../api.html#biollm.base.load_llm.LoadLlm.get_embedding">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_embedding</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">emb_type</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Abstract method for retrieving model embeddings. Must be implemented in subclasses.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            emb_type (str): Specifies the type of embedding to retrieve (e.g., cell or gene embedding).</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            NotImplementedError: Must be implemented in subclasses.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s1">&#39;must implement get_embedding!&#39;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="LoadLlm.freezon_model">
+<a class="viewcode-back" href="../../../api.html#biollm.base.load_llm.LoadLlm.freezon_model">[docs]</a>
+    <span class="k">def</span> <span class="nf">freezon_model</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">keep_layers</span><span class="o">=</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">]):</span>
+        <span class="c1"># raise NotImplementedError(&#39;must implement freezon_model!&#39;)</span>
+        <span class="k">pass</span></div>
+</div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, BGI, Ping Qiu.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

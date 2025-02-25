@@ -4,10 +4,9 @@ Base Modules
 biollm.base.bio\_task
 -----------
 
-.. automodule:: biollm.base.bio_task
-   :members:
-   :undoc-members:
-   :show-inheritance:
+.. raw:: html
+   <iframe src="_static/bio_task.html" width="100%" height="600"></iframe>
+
 
 biollm.base.load\_llm
 --------------------------
@@ -19,28 +18,20 @@ biollm.base.load\_llm
 
 biollm.base.load\_scbert
 --------------------------
-.. automodule:: biollm.base.load_scbert
-   :members:
-   :undoc-members:
-   :show-inheritance:
+.. raw:: html
+   <iframe src="_static/load_scbert.html" width="100%" height="600"></iframe>
 
 biollm.base.load\_scfoundation
 -------------------------------
-.. automodule:: biollm.base.load_scfoundation
-   :members:
-   :undoc-members:
-   :show-inheritance:
+.. raw:: html
+   <iframe src="_static/load_scfoundation.html" width="100%" height="600"></iframe>
 
 biollm.base.load\_scgpt
 -------------------------------
-.. automodule:: biollm.base.load_scgpt
-   :members:
-   :undoc-members:
-   :show-inheritance:
+.. raw:: html
+   <iframe src="_static/load_scgpt.html" width="100%" height="600"></iframe>
 
 biollm.base.load\_geneformer
 -------------------------------
-.. automodule:: biollm.base.load_geneformer
-   :members:
-   :undoc-members:
-   :show-inheritance:
+.. raw:: html
+   <iframe src="_static/load_geneformer.html" width="100%" height="600"></iframe>

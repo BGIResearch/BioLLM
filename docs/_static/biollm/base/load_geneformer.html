@@ -1,0 +1,360 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>biollm.base.load_geneformer &mdash; BioLLM 0.1.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=a58bc63e"></script>
+      <script src="../../../_static/doctools.js?v=9a2dae69"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            BioLLM
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Getting Started:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Tutorials:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../Cell_embedding.html">Evaluation of the clustering of the embed cell.</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../GRN.html">GRN</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../Annotation.html">Annotation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../drug_task.html">Drug Annotation Task Documentation</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api.html">BioLLM Modules</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">References:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../download.html">Download the scFM pretrain model and configs</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">BioLLM</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">biollm.base.load_geneformer</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for biollm.base.load_geneformer</h1><div class="highlight"><pre>
+<span></span><span class="ch">#!/usr/bin/env python</span>
+<span class="c1"># -*- coding:utf-8 -*-</span>
+<span class="c1"># @FileName  :load_geneformer.py</span>
+<span class="c1"># @Time      :2024/3/22 10:17</span>
+<span class="c1"># @Author    :Luni Hu</span>
+
+<span class="kn">import</span> <span class="nn">scanpy</span> <span class="k">as</span> <span class="nn">sc</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+
+<span class="kn">from</span> <span class="nn">biollm.base.load_llm</span> <span class="kn">import</span> <span class="n">LoadLlm</span>
+<span class="kn">from</span> <span class="nn">transformers</span> <span class="kn">import</span> <span class="n">BertForMaskedLM</span><span class="p">,</span> <span class="n">BertForTokenClassification</span><span class="p">,</span> <span class="n">BertForSequenceClassification</span>
+<span class="kn">from</span> <span class="nn">biollm.repo.scgpt.tokenizer.gene_tokenizer</span> <span class="kn">import</span> <span class="n">GeneVocab</span>
+<span class="kn">from</span> <span class="nn">biollm.repo.geneformer.emb_extractor</span> <span class="kn">import</span> <span class="n">get_embs</span>
+<span class="kn">from</span> <span class="nn">biollm.repo.geneformer.tokenizer</span> <span class="kn">import</span> <span class="n">TranscriptomeTokenizer</span>
+<span class="kn">import</span> <span class="nn">torch</span>
+<span class="kn">from</span> <span class="nn">scipy.sparse</span> <span class="kn">import</span> <span class="n">issparse</span><span class="p">,</span> <span class="n">csr_matrix</span>
+<span class="kn">import</span> <span class="nn">pickle</span> <span class="k">as</span> <span class="nn">pkl</span>
+<span class="kn">import</span> <span class="nn">os</span>
+
+
+<div class="viewcode-block" id="LoadGeneformer">
+<a class="viewcode-back" href="../../../api.html#biollm.base.load_geneformer.LoadGeneformer">[docs]</a>
+<span class="k">class</span> <span class="nc">LoadGeneformer</span><span class="p">(</span><span class="n">LoadLlm</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    The LoadGeneformer class provides a specific implementation for loading and utilizing</span>
+<span class="sd">    the Geneformer model, which can be used in various single-cell and gene expression analysis tasks.</span>
+<span class="sd">    This class supports loading pre-trained models, generating embeddings, and creating tokenized datasets</span>
+<span class="sd">    from input data.</span>
+
+<span class="sd">    Attributes:</span>
+<span class="sd">        vocab (GeneVocab): Vocabulary object containing gene-to-index mappings.</span>
+<span class="sd">        model (torch.nn.Module): Initialized model based on the specified model type and configuration.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">cfs_file</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">data_path</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initializes the LoadGeneformer class, setting up configurations, loading the model,</span>
+<span class="sd">        and placing it on the specified device.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            args (Namespace, optional): Configuration arguments for the model and task.</span>
+<span class="sd">            cfs_file (str, optional): Path to a configuration file for loading settings.</span>
+<span class="sd">            data_path (str, optional): Path to the input data file.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">LoadGeneformer</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__int__</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">cfs_file</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">vocab</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">load_vocab</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">data_path</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">input_file</span> <span class="o">=</span> <span class="n">data_path</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">load_model</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+
+<div class="viewcode-block" id="LoadGeneformer.load_model">
+<a class="viewcode-back" href="../../../api.html#biollm.base.load_geneformer.LoadGeneformer.load_model">[docs]</a>
+    <span class="k">def</span> <span class="nf">load_model</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Loads the specified model type based on the arguments provided.</span>
+<span class="sd">        Supports loading different model types, such as pretrained, gene classifiers, and cell classifiers.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            torch.nn.Module: The initialized model based on specified type and parameters.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">model_type</span> <span class="o">==</span> <span class="s2">&quot;Pretrained&quot;</span><span class="p">:</span>
+            <span class="n">model</span> <span class="o">=</span> <span class="n">BertForMaskedLM</span><span class="o">.</span><span class="n">from_pretrained</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">model_file</span><span class="p">,</span>
+                                                    <span class="n">output_hidden_states</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                                                    <span class="n">output_attentions</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">output_dir</span><span class="si">}</span><span class="s1">/label_dict.pk&#39;</span><span class="p">):</span>
+                <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">output_dir</span><span class="si">}</span><span class="s1">/label_dict.pk&#39;</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fp</span><span class="p">:</span>
+                    <span class="n">label_list</span> <span class="o">=</span> <span class="n">pkl</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">fp</span><span class="p">)</span>
+                <span class="n">num_classes</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">label_list</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">adata</span> <span class="o">=</span> <span class="n">sc</span><span class="o">.</span><span class="n">read_h5ad</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">input_file</span><span class="p">)</span>
+                <span class="n">num_classes</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">adata</span><span class="o">.</span><span class="n">obs</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">label_key</span><span class="p">]</span><span class="o">.</span><span class="n">unique</span><span class="p">())</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">model_type</span> <span class="o">==</span> <span class="s2">&quot;GeneClassifier&quot;</span><span class="p">:</span>
+                <span class="n">model</span> <span class="o">=</span> <span class="n">BertForTokenClassification</span><span class="o">.</span><span class="n">from_pretrained</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">model_file</span><span class="p">,</span>
+                                                                   <span class="n">num_labels</span><span class="o">=</span><span class="n">num_classes</span><span class="p">,</span>
+                                                                   <span class="n">output_hidden_states</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                                                                   <span class="n">output_attentions</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+            <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">model_type</span> <span class="o">==</span> <span class="s2">&quot;CellClassifier&quot;</span><span class="p">:</span>
+                <span class="n">model</span> <span class="o">=</span> <span class="n">BertForSequenceClassification</span><span class="o">.</span><span class="n">from_pretrained</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">model_file</span><span class="p">,</span>
+                                                                      <span class="n">num_labels</span><span class="o">=</span><span class="n">num_classes</span><span class="p">,</span>
+                                                                      <span class="n">output_hidden_states</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                                                                      <span class="n">output_attentions</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">model</span></div>
+
+
+<div class="viewcode-block" id="LoadGeneformer.get_embedding">
+<a class="viewcode-back" href="../../../api.html#biollm.base.load_geneformer.LoadGeneformer.get_embedding">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_embedding</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">emb_type</span><span class="p">,</span> <span class="n">adata</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">gene_ids</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Retrieves embeddings for genes or cells based on the specified embedding type.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            emb_type (str): Type of embedding to retrieve (&quot;gene&quot; or &quot;cell&quot;).</span>
+<span class="sd">            adata (AnnData, optional): Annotated data object with single-cell data.</span>
+<span class="sd">            gene_ids (torch.Tensor, optional): Tensor of gene IDs for gene embedding extraction.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            np.ndarray or torch.Tensor: Embeddings of specified type.</span>
+<span class="sd">            torch.Tensor: Gene IDs if requested in embedding output.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">eval</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">emb_type</span> <span class="o">==</span> <span class="s2">&quot;gene&quot;</span><span class="p">:</span>
+
+            <span class="n">emb</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">bert</span><span class="o">.</span><span class="n">embeddings</span><span class="o">.</span><span class="n">word_embeddings</span><span class="p">(</span><span class="n">gene_ids</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">wandb</span><span class="p">:</span>
+                <span class="n">total_gpu</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">memory_allocated</span><span class="p">()</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1024</span> <span class="o">**</span> <span class="mi">3</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">wandb</span><span class="o">.</span><span class="n">log</span><span class="p">({</span><span class="s1">&#39;GPU&#39;</span><span class="p">:</span> <span class="n">total_gpu</span><span class="p">})</span>
+            <span class="k">return</span> <span class="n">emb</span>
+
+        <span class="k">elif</span> <span class="n">emb_type</span> <span class="o">==</span> <span class="s2">&quot;cell&quot;</span><span class="p">:</span>
+
+            <span class="n">dataset</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">load_data</span><span class="p">(</span><span class="n">adata</span><span class="o">=</span><span class="n">adata</span><span class="p">)</span>
+
+            <span class="n">emb</span> <span class="o">=</span> <span class="n">get_embs</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">,</span>
+                <span class="n">dataset</span><span class="o">=</span><span class="n">dataset</span><span class="p">,</span>
+                <span class="n">emb_mode</span><span class="o">=</span><span class="n">emb_type</span><span class="p">,</span>
+                <span class="n">pad_token_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">vocab</span><span class="p">[</span><span class="s2">&quot;&lt;pad&gt;&quot;</span><span class="p">],</span>
+                <span class="n">forward_batch_size</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">wandb</span><span class="p">:</span>
+                <span class="n">total_gpu</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">memory_allocated</span><span class="p">()</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1024</span> <span class="o">**</span> <span class="mi">3</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">wandb</span><span class="o">.</span><span class="n">log</span><span class="p">({</span><span class="s1">&#39;GPU&#39;</span><span class="p">:</span> <span class="n">total_gpu</span><span class="p">})</span>
+            <span class="n">emb</span> <span class="o">=</span> <span class="n">emb</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
+
+            <span class="k">return</span> <span class="n">emb</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">dataset</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">load_data</span><span class="p">(</span><span class="n">adata</span><span class="o">=</span><span class="n">adata</span><span class="p">)</span>
+
+            <span class="n">emb</span><span class="p">,</span> <span class="n">gene_ids</span> <span class="o">=</span> <span class="n">get_embs</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">,</span>
+                <span class="n">dataset</span><span class="o">=</span><span class="n">dataset</span><span class="p">,</span>
+                <span class="n">emb_mode</span><span class="o">=</span><span class="n">emb_type</span><span class="p">,</span>
+                <span class="n">pad_token_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">vocab</span><span class="p">[</span><span class="s2">&quot;&lt;pad&gt;&quot;</span><span class="p">],</span>
+                <span class="n">forward_batch_size</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">wandb</span><span class="p">:</span>
+                <span class="n">total_gpu</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">memory_allocated</span><span class="p">()</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1024</span> <span class="o">**</span> <span class="mi">3</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">wandb</span><span class="o">.</span><span class="n">log</span><span class="p">({</span><span class="s1">&#39;GPU&#39;</span><span class="p">:</span> <span class="n">total_gpu</span><span class="p">})</span>
+            <span class="k">return</span> <span class="n">emb</span><span class="p">,</span> <span class="n">gene_ids</span></div>
+
+
+<div class="viewcode-block" id="LoadGeneformer.get_gene2idx">
+<a class="viewcode-back" href="../../../api.html#biollm.base.load_geneformer.LoadGeneformer.get_gene2idx">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_gene2idx</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Retrieves the gene-to-index mapping from the vocabulary.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            dict: Mapping of gene names to indices.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">vocab</span><span class="o">.</span><span class="n">get_stoi</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="LoadGeneformer.load_vocab">
+<a class="viewcode-back" href="../../../api.html#biollm.base.load_geneformer.LoadGeneformer.load_vocab">[docs]</a>
+    <span class="k">def</span> <span class="nf">load_vocab</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Loads the vocabulary used for gene tokenization.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            GeneVocab: Vocabulary object with gene-to-index mappings.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">vocab</span> <span class="o">=</span> <span class="n">GeneVocab</span><span class="o">.</span><span class="n">from_file</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">vocab_file</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">vocab</span></div>
+
+
+<div class="viewcode-block" id="LoadGeneformer.load_data">
+<a class="viewcode-back" href="../../../api.html#biollm.base.load_geneformer.LoadGeneformer.load_data">[docs]</a>
+    <span class="k">def</span> <span class="nf">load_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">adata</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">data_path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">cell_type_key</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">nproc</span><span class="o">=</span><span class="mi">16</span><span class="p">,</span> <span class="n">add_length</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Loads and tokenizes single-cell data, preparing it for embedding extraction.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            adata (AnnData, optional): Annotated data object for single-cell data.</span>
+<span class="sd">            data_path (str, optional): Path to data file if adata is not provided.</span>
+<span class="sd">            cell_type_key (str, optional): Key for cell type annotation.</span>
+<span class="sd">            nproc (int, optional): Number of processes for tokenization. Default is 16.</span>
+<span class="sd">            add_length (bool, optional): Whether to add sequence length information. Default is True.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Dataset: Tokenized dataset for model input.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">data_path</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">adata</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+
+            <span class="n">adata</span> <span class="o">=</span> <span class="n">sc</span><span class="o">.</span><span class="n">read_h5ad</span><span class="p">(</span><span class="n">data_path</span><span class="p">)</span>
+        <span class="c1"># if adata.raw is not None:</span>
+        <span class="c1">#     adata.X = adata.raw.X</span>
+        <span class="c1"># if adata.X.max() - np.int32(adata.X.max()) != 0:</span>
+        <span class="c1">#     raise ValueError(&#39;Anndata.X must be raw count!&#39;)</span>
+        <span class="k">if</span> <span class="s1">&#39;n_counts&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">adata</span><span class="o">.</span><span class="n">obs</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">issparse</span><span class="p">(</span><span class="n">adata</span><span class="o">.</span><span class="n">X</span><span class="p">):</span>
+                <span class="n">express_x</span> <span class="o">=</span> <span class="n">csr_matrix</span><span class="p">(</span><span class="n">adata</span><span class="o">.</span><span class="n">X</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">express_x</span> <span class="o">=</span> <span class="n">adata</span><span class="o">.</span><span class="n">X</span>
+            <span class="n">adata</span><span class="o">.</span><span class="n">obs</span><span class="p">[</span><span class="s2">&quot;n_counts&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ravel</span><span class="p">(</span><span class="n">express_x</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">cell_type_key</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">attr_dict</span> <span class="o">=</span> <span class="p">{</span><span class="n">cell_type_key</span><span class="p">:</span> <span class="s2">&quot;cell_type&quot;</span><span class="p">}</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">attr_dict</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="n">tk</span> <span class="o">=</span> <span class="n">TranscriptomeTokenizer</span><span class="p">(</span><span class="n">custom_attr_name_dict</span><span class="o">=</span><span class="n">attr_dict</span><span class="p">,</span>
+                                    <span class="n">gene_median_file</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">gene_median_file</span><span class="p">,</span>
+                                    <span class="n">token_dictionary_file</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">vocab_file</span><span class="p">,</span>
+                                    <span class="n">nproc</span><span class="o">=</span><span class="n">nproc</span><span class="p">)</span>
+
+        <span class="n">tokenized_cells</span><span class="p">,</span> <span class="n">cell_metadata</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">tokenize_anndata</span><span class="p">(</span><span class="n">adata</span><span class="p">)</span>
+
+        <span class="n">tokenized_dataset</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">create_dataset</span><span class="p">(</span><span class="n">tokenized_cells</span><span class="p">,</span> <span class="n">cell_metadata</span><span class="p">,</span> <span class="n">add_length</span><span class="o">=</span><span class="n">add_length</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">tokenized_dataset</span></div>
+</div>
+
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">biollm.utils.utils</span> <span class="kn">import</span> <span class="n">load_config</span>
+    <span class="kn">import</span> <span class="nn">pickle</span> <span class="k">as</span> <span class="nn">pkl</span>
+    <span class="kn">import</span> <span class="nn">os</span>
+    <span class="kn">import</span> <span class="nn">scanpy</span> <span class="k">as</span> <span class="nn">sc</span>
+
+    <span class="n">config_file</span> <span class="o">=</span> <span class="s1">&#39;../../tutorials/zero-shot/configs/geneformer_gene-expression_emb.toml&#39;</span>
+    <span class="n">configs</span> <span class="o">=</span> <span class="n">load_config</span><span class="p">(</span><span class="n">config_file</span><span class="p">)</span>
+
+    <span class="n">obj</span> <span class="o">=</span> <span class="n">LoadGeneformer</span><span class="p">(</span><span class="n">configs</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">obj</span><span class="o">.</span><span class="n">args</span><span class="p">)</span>
+    <span class="n">adata</span> <span class="o">=</span> <span class="n">sc</span><span class="o">.</span><span class="n">read_h5ad</span><span class="p">(</span><span class="n">configs</span><span class="o">.</span><span class="n">input_file</span><span class="p">)</span>
+
+    <span class="n">obj</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">configs</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">obj</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+    <span class="n">emb</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">get_embedding</span><span class="p">(</span><span class="n">obj</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">emb_type</span><span class="p">,</span> <span class="n">adata</span><span class="o">=</span><span class="n">adata</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;embedding shape:&#39;</span><span class="p">,</span> <span class="n">emb</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">configs</span><span class="o">.</span><span class="n">output_dir</span><span class="p">):</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">configs</span><span class="o">.</span><span class="n">output_dir</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">obj</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">output_dir</span> <span class="o">+</span> <span class="sa">f</span><span class="s1">&#39;/geneformer_</span><span class="si">{</span><span class="n">obj</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">emb_type</span><span class="si">}</span><span class="s1">_emb.pk&#39;</span><span class="p">,</span> <span class="s1">&#39;wb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">w</span><span class="p">:</span>
+        <span class="n">res</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;gene_names&#39;</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="n">obj</span><span class="o">.</span><span class="n">get_gene2idx</span><span class="p">()</span><span class="o">.</span><span class="n">keys</span><span class="p">()),</span> <span class="s1">&#39;gene_emb&#39;</span><span class="p">:</span> <span class="n">emb</span><span class="p">}</span>
+        <span class="n">pkl</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">emb</span><span class="p">,</span> <span class="n">w</span><span class="p">)</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, BGI, Ping Qiu.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

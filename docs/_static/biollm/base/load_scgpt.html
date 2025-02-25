@@ -1,0 +1,661 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>biollm.base.load_scgpt &mdash; BioLLM 0.1.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=a58bc63e"></script>
+      <script src="../../../_static/doctools.js?v=9a2dae69"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            BioLLM
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Getting Started:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Tutorials:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../Cell_embedding.html">Evaluation of the clustering of the embed cell.</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../GRN.html">GRN</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../Annotation.html">Annotation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../drug_task.html">Drug Annotation Task Documentation</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api.html">BioLLM Modules</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">References:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../download.html">Download the scFM pretrain model and configs</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">BioLLM</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">biollm.base.load_scgpt</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for biollm.base.load_scgpt</h1><div class="highlight"><pre>
+<span></span><span class="ch">#!/usr/bin/env python3</span>
+<span class="c1"># coding: utf-8</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">@author: Ping Qiu  qiuping1@genomics.cn</span>
+<span class="sd">@last modified by: Ping Qiu</span>
+<span class="sd">@file: load_scgpt.py</span>
+<span class="sd">@time: 2024/3/3 11:13</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">biollm.base.load_llm</span> <span class="kn">import</span> <span class="n">LoadLlm</span>
+<span class="kn">from</span> <span class="nn">biollm.repo.scgpt.tokenizer.gene_tokenizer</span> <span class="kn">import</span> <span class="n">GeneVocab</span>
+<span class="kn">from</span> <span class="nn">biollm.repo.scgpt.model</span> <span class="kn">import</span> <span class="n">TransformerModel</span>
+<span class="kn">from</span> <span class="nn">biollm.model.perturbation</span> <span class="kn">import</span> <span class="n">ScgptPerturbation</span>
+<span class="kn">from</span> <span class="nn">torch.utils.data.sampler</span> <span class="kn">import</span> <span class="n">SequentialSampler</span>
+<span class="kn">from</span> <span class="nn">torch.utils.data.distributed</span> <span class="kn">import</span> <span class="n">DistributedSampler</span>
+<span class="kn">from</span> <span class="nn">torch.utils.data</span> <span class="kn">import</span> <span class="n">DataLoader</span>
+<span class="kn">import</span> <span class="nn">torch</span>
+<span class="kn">from</span> <span class="nn">tqdm</span> <span class="kn">import</span> <span class="n">tqdm</span>
+<span class="kn">from</span> <span class="nn">biollm.repo.scgpt.preprocess</span> <span class="kn">import</span> <span class="n">Preprocessor</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">biollm.dataset.scgpt_dataset</span> <span class="kn">import</span> <span class="n">SeqDataset</span><span class="p">,</span> <span class="n">prepare_data</span><span class="p">,</span> <span class="n">prepare_dataloader</span><span class="p">,</span> <span class="n">make_dataset</span>
+
+
+<div class="viewcode-block" id="LoadScgpt">
+<a class="viewcode-back" href="../../../api.html#biollm.base.load_scgpt.LoadScgpt">[docs]</a>
+<span class="k">class</span> <span class="nc">LoadScgpt</span><span class="p">(</span><span class="n">LoadLlm</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Load and manage the scGPT model for gene expression analysis.</span>
+
+<span class="sd">    This class provides methods to load the vocabulary, model parameters,</span>
+<span class="sd">    and perform preprocessing steps on the single-cell data.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        args (Namespace): Command line arguments containing model configuration.</span>
+
+<span class="sd">    Attributes:</span>
+<span class="sd">        vocab (GeneVocab): Vocabulary object for gene representation.</span>
+<span class="sd">        model (TransformerModel): Loaded Transformer model.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">args</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initializes the LoadScgpt class.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            args (Namespace): Command line arguments containing model configuration.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">LoadScgpt</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__int__</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">vocab</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">load_vocab</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">load_model</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">init_model</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+
+<div class="viewcode-block" id="LoadScgpt.load_model">
+<a class="viewcode-back" href="../../../api.html#biollm.base.load_scgpt.LoadScgpt.load_model">[docs]</a>
+    <span class="k">def</span> <span class="nf">load_model</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Loads the Transformer model with specified parameters.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            TransformerModel: The initialized Transformer model.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">ntokens</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">vocab</span><span class="p">)</span>
+        <span class="n">model_param</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;ntoken&#39;</span><span class="p">:</span> <span class="n">ntokens</span><span class="p">,</span>
+            <span class="s1">&#39;d_model&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">embsize</span><span class="p">,</span>
+            <span class="s1">&#39;nhead&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">nheads</span><span class="p">,</span>
+            <span class="s1">&#39;d_hid&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">d_hid</span><span class="p">,</span>
+            <span class="s1">&#39;nlayers&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">nlayers</span><span class="p">,</span>
+            <span class="s1">&#39;nlayers_cls&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">nlayers_cls</span> <span class="k">if</span> <span class="s1">&#39;nlayers_cls&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span> <span class="k">else</span> <span class="mi">3</span><span class="p">,</span>
+            <span class="s1">&#39;n_cls&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">n_cls</span> <span class="k">if</span> <span class="s1">&#39;n_cls&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span> <span class="k">else</span> <span class="mi">1</span><span class="p">,</span>
+            <span class="s1">&#39;dropout&#39;</span><span class="p">:</span> <span class="mf">0.5</span><span class="p">,</span>
+            <span class="s1">&#39;pad_token&#39;</span><span class="p">:</span> <span class="s2">&quot;&lt;pad&gt;&quot;</span><span class="p">,</span>
+            <span class="s1">&#39;do_mvc&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+            <span class="s1">&#39;do_dab&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+            <span class="s1">&#39;use_batch_labels&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+            <span class="s1">&#39;num_batch_labels&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="s1">&#39;domain_spec_batchnorm&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+            <span class="s1">&#39;input_emb_style&#39;</span><span class="p">:</span> <span class="s2">&quot;continuous&quot;</span><span class="p">,</span>
+            <span class="s1">&#39;cell_emb_style&#39;</span><span class="p">:</span> <span class="s2">&quot;cls&quot;</span><span class="p">,</span>
+            <span class="s1">&#39;mvc_decoder_style&#39;</span><span class="p">:</span> <span class="s2">&quot;inner product&quot;</span><span class="p">,</span>
+            <span class="s1">&#39;ecs_threshold&#39;</span><span class="p">:</span> <span class="mf">0.3</span><span class="p">,</span>
+            <span class="s1">&#39;explicit_zero_prob&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+            <span class="s1">&#39;fast_transformer_backend&#39;</span><span class="p">:</span> <span class="s2">&quot;flash&quot;</span><span class="p">,</span>
+            <span class="s1">&#39;pre_norm&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+            <span class="s1">&#39;vocab&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">vocab</span><span class="p">,</span>
+            <span class="s1">&#39;pad_value&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">pad_value</span><span class="p">,</span>
+            <span class="s1">&#39;n_input_bins&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">n_bins</span><span class="p">,</span>
+            <span class="s1">&#39;use_fast_transformer&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="p">}</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">model_param</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">:</span>
+                <span class="n">model_param</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">model_param</span><span class="p">)</span>
+        <span class="n">model</span> <span class="o">=</span> <span class="n">TransformerModel</span><span class="p">(</span><span class="o">**</span><span class="n">model_param</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">model</span></div>
+
+
+<div class="viewcode-block" id="LoadScgpt.load_pert_model">
+<a class="viewcode-back" href="../../../api.html#biollm.base.load_scgpt.LoadScgpt.load_pert_model">[docs]</a>
+    <span class="k">def</span> <span class="nf">load_pert_model</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Loads the perturbation model with specified parameters.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            ScgptPerturbation: The initialized perturbation model.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">ntokens</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">vocab</span><span class="p">)</span>
+        <span class="n">pert_model</span> <span class="o">=</span> <span class="n">ScgptPerturbation</span><span class="p">(</span>
+            <span class="n">ntokens</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">embsize</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">nheads</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">d_hid</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">nlayers</span><span class="p">,</span>
+            <span class="n">nlayers_cls</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">nlayers_cls</span><span class="p">,</span>
+            <span class="n">vocab</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">vocab</span><span class="p">,</span>
+            <span class="n">n_cls</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+            <span class="n">dropout</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">dropout</span><span class="p">,</span>
+            <span class="n">pad_token</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">pad_token</span><span class="p">,</span>
+            <span class="n">pad_value</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">pad_value</span><span class="p">,</span>
+            <span class="n">pert_pad_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">pert_pad_id</span><span class="p">,</span>
+            <span class="n">do_mvc</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">MVC</span><span class="p">,</span>
+            <span class="n">cell_emb_style</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">cell_emb_style</span><span class="p">,</span>
+            <span class="n">mvc_decoder_style</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">mvc_decoder_style</span><span class="p">,</span>
+            <span class="n">use_fast_transformer</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">use_fast_transformer</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">pert_model</span></div>
+
+
+<div class="viewcode-block" id="LoadScgpt.load_vocab">
+<a class="viewcode-back" href="../../../api.html#biollm.base.load_scgpt.LoadScgpt.load_vocab">[docs]</a>
+    <span class="k">def</span> <span class="nf">load_vocab</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Loads the gene vocabulary from a file and adds special tokens.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            GeneVocab: The loaded gene vocabulary.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">vocab</span> <span class="o">=</span> <span class="n">GeneVocab</span><span class="o">.</span><span class="n">from_file</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">vocab_file</span><span class="p">)</span>
+        <span class="n">special_tokens</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;&lt;pad&gt;&#39;</span><span class="p">,</span> <span class="s1">&#39;&lt;cls&gt;&#39;</span><span class="p">,</span> <span class="s1">&#39;&lt;eoc&gt;&#39;</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">token</span> <span class="ow">in</span> <span class="n">special_tokens</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">token</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">vocab</span><span class="p">:</span>
+                <span class="n">vocab</span><span class="o">.</span><span class="n">append_token</span><span class="p">(</span><span class="n">token</span><span class="p">)</span>
+        <span class="n">vocab</span><span class="o">.</span><span class="n">set_default_index</span><span class="p">(</span><span class="n">vocab</span><span class="p">[</span><span class="s1">&#39;&lt;pad&gt;&#39;</span><span class="p">])</span>
+        <span class="k">return</span> <span class="n">vocab</span></div>
+
+
+<div class="viewcode-block" id="LoadScgpt.get_gene2idx">
+<a class="viewcode-back" href="../../../api.html#biollm.base.load_scgpt.LoadScgpt.get_gene2idx">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_gene2idx</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Retrieves a mapping from gene names to their indices.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            dict: A dictionary mapping gene names to indices.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">vocab</span><span class="o">.</span><span class="n">get_stoi</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="LoadScgpt.freezon_model">
+<a class="viewcode-back" href="../../../api.html#biollm.base.load_scgpt.LoadScgpt.freezon_model">[docs]</a>
+    <span class="k">def</span> <span class="nf">freezon_model</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">keep_layers</span><span class="o">=</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">]):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Freezes model parameters except for specified layers.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            keep_layers (list): List of layers to keep trainable.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">model_param_count</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span>
+            <span class="nb">dict</span><span class="p">((</span><span class="n">p</span><span class="o">.</span><span class="n">data_ptr</span><span class="p">(),</span> <span class="n">p</span><span class="o">.</span><span class="n">numel</span><span class="p">())</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="p">()</span> <span class="k">if</span> <span class="n">p</span><span class="o">.</span><span class="n">requires_grad</span><span class="p">)</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+        <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">param</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">named_parameters</span><span class="p">():</span>
+            <span class="k">if</span> <span class="s1">&#39;encoder&#39;</span> <span class="ow">in</span> <span class="n">name</span> <span class="ow">and</span> <span class="s2">&quot;transformer_encoder&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">name</span><span class="p">:</span>
+                <span class="n">param</span><span class="o">.</span><span class="n">requires_grad</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="n">ft_param_count</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span>
+            <span class="nb">dict</span><span class="p">((</span><span class="n">p</span><span class="o">.</span><span class="n">data_ptr</span><span class="p">(),</span> <span class="n">p</span><span class="o">.</span><span class="n">numel</span><span class="p">())</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="p">()</span> <span class="k">if</span> <span class="n">p</span><span class="o">.</span><span class="n">requires_grad</span><span class="p">)</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Total pretrain-model Encoder Params </span><span class="si">{</span><span class="n">model_param_count</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;The pretrain_model Encoder Params for training in finetune after freezon: </span><span class="si">{</span><span class="n">ft_param_count</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="LoadScgpt.get_gene_embedding">
+<a class="viewcode-back" href="../../../api.html#biollm.base.load_scgpt.LoadScgpt.get_gene_embedding">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_gene_embedding</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">gene_ids</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Gets gene embeddings for specified gene IDs.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            gene_ids (list): List of gene IDs.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            np.ndarray: Gene embeddings as a NumPy array.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;start to get gene embedding!&#39;</span><span class="p">)</span>
+        <span class="n">gene_embeddings</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">encoder</span><span class="p">(</span><span class="n">gene_ids</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">wandb</span><span class="p">:</span>
+            <span class="n">total_gpu</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">memory_allocated</span><span class="p">()</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1024</span><span class="o">**</span><span class="mi">3</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">wandb</span><span class="o">.</span><span class="n">log</span><span class="p">({</span><span class="s1">&#39;GPU&#39;</span><span class="p">:</span> <span class="n">total_gpu</span><span class="p">})</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;finished get gene embedding!&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">gene_embeddings</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="LoadScgpt.preprocess_adata">
+<a class="viewcode-back" href="../../../api.html#biollm.base.load_scgpt.LoadScgpt.preprocess_adata">[docs]</a>
+    <span class="k">def</span> <span class="nf">preprocess_adata</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">adata</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Preprocesses the AnnData object for gene expression analysis.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            adata (AnnData): The AnnData object to preprocess.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            AnnData: The preprocessed AnnData object.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="s1">&#39;gene_name&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">adata</span><span class="o">.</span><span class="n">var_keys</span><span class="p">():</span>
+            <span class="n">adata</span><span class="o">.</span><span class="n">var</span><span class="p">[</span><span class="s1">&#39;gene_name&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">adata</span><span class="o">.</span><span class="n">var_names</span>
+        <span class="k">if</span> <span class="s1">&#39;do_preprocess&#39;</span> <span class="ow">in</span> <span class="n">adata</span><span class="o">.</span><span class="n">uns</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;the adata was already preprocessed, pass the step!&#39;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">adata</span>
+        <span class="n">adata</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">filter_gene</span><span class="p">(</span><span class="n">adata</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">adata</span><span class="o">.</span><span class="n">X</span><span class="o">.</span><span class="n">min</span><span class="p">()</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">normalize_total</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="n">log1p</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="k">if</span> <span class="n">adata</span><span class="o">.</span><span class="n">X</span><span class="o">.</span><span class="n">max</span><span class="p">()</span> <span class="o">&gt;</span> <span class="mi">20</span><span class="p">:</span>
+                <span class="n">log1p</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="k">if</span> <span class="n">adata</span><span class="o">.</span><span class="n">X</span><span class="o">.</span><span class="n">max</span><span class="p">()</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">(</span><span class="n">adata</span><span class="o">.</span><span class="n">X</span><span class="o">.</span><span class="n">max</span><span class="p">())</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">(</span><span class="mi">0</span><span class="p">):</span>
+                    <span class="n">normalize_total</span> <span class="o">=</span> <span class="mf">10000.0</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s1">&#39;the express matrix have been scale, exit!&#39;</span><span class="p">)</span>
+        <span class="n">preprocessor</span> <span class="o">=</span> <span class="n">Preprocessor</span><span class="p">(</span>
+            <span class="n">use_key</span><span class="o">=</span><span class="s2">&quot;X&quot;</span><span class="p">,</span>  <span class="c1"># the key in adata.layers to use as raw data</span>
+            <span class="n">filter_gene_by_counts</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">filter_gene_by_counts</span> <span class="k">if</span> <span class="s1">&#39;filter_gene_by_counts&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span> <span class="k">else</span> <span class="kc">False</span><span class="p">,</span>  <span class="c1"># step 1</span>
+            <span class="n">filter_cell_by_counts</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">filter_cell_by_counts</span> <span class="k">if</span> <span class="s1">&#39;filter_cell_by_counts&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span> <span class="k">else</span> <span class="kc">False</span><span class="p">,</span>  <span class="c1"># step 2</span>
+            <span class="n">normalize_total</span><span class="o">=</span><span class="n">normalize_total</span><span class="p">,</span>  <span class="c1"># 3. whether to normalize the raw data and to what sum</span>
+            <span class="n">result_normed_key</span><span class="o">=</span><span class="s2">&quot;X_normed&quot;</span><span class="p">,</span>  <span class="c1"># the key in adata.layers to store the normalized data</span>
+            <span class="n">log1p</span><span class="o">=</span><span class="n">log1p</span><span class="p">,</span>  <span class="c1"># 4. whether to log1p the normalized data</span>
+            <span class="n">result_log1p_key</span><span class="o">=</span><span class="s2">&quot;X_log1p&quot;</span><span class="p">,</span>
+            <span class="n">subset_hvg</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">n_hvg</span> <span class="k">if</span> <span class="s1">&#39;n_hvg&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span> <span class="k">else</span> <span class="kc">False</span><span class="p">,</span>  <span class="c1"># 5. whether to subset the raw data to highly variable genes</span>
+            <span class="n">hvg_flavor</span><span class="o">=</span><span class="s2">&quot;seurat_v3&quot;</span> <span class="k">if</span> <span class="n">log1p</span> <span class="k">else</span> <span class="s2">&quot;cell_ranger&quot;</span><span class="p">,</span>
+            <span class="n">binning</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">n_bins</span><span class="p">,</span>  <span class="c1"># 6. whether to bin the raw data and to what number of bins</span>
+            <span class="n">result_binned_key</span><span class="o">=</span><span class="s2">&quot;X_binned&quot;</span><span class="p">,</span>  <span class="c1"># the key in adata.layers to store the binned data</span>
+        <span class="p">)</span>
+        <span class="n">preprocessor</span><span class="p">(</span><span class="n">adata</span><span class="p">,</span> <span class="n">batch_key</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">batch_key</span> <span class="k">if</span> <span class="s1">&#39;batch_key&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span> <span class="k">else</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="n">adata</span><span class="o">.</span><span class="n">uns</span><span class="p">[</span><span class="s1">&#39;do_preprocess&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">return</span> <span class="n">adata</span></div>
+
+
+<div class="viewcode-block" id="LoadScgpt.filter_gene">
+<a class="viewcode-back" href="../../../api.html#biollm.base.load_scgpt.LoadScgpt.filter_gene">[docs]</a>
+    <span class="k">def</span> <span class="nf">filter_gene</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">adata</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Filters genes in the AnnData object based on the vocabulary.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            adata (AnnData): The AnnData object containing gene information.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            tuple: A tuple containing the filtered AnnData object and gene IDs in the vocabulary.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">adata</span><span class="o">.</span><span class="n">var</span><span class="p">[</span><span class="s2">&quot;id_in_vocab&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="mi">1</span> <span class="k">if</span> <span class="n">gene</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">vocab</span> <span class="k">else</span> <span class="o">-</span><span class="mi">1</span> <span class="k">for</span> <span class="n">gene</span> <span class="ow">in</span> <span class="n">adata</span><span class="o">.</span><span class="n">var_names</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+        <span class="p">]</span>
+        <span class="n">gene_ids_in_vocab</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">adata</span><span class="o">.</span><span class="n">var</span><span class="p">[</span><span class="s2">&quot;id_in_vocab&quot;</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;match </span><span class="si">{</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">gene_ids_in_vocab</span><span class="w"> </span><span class="o">&gt;=</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">gene_ids_in_vocab</span><span class="p">)</span><span class="si">}</span><span class="s2"> genes &quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;in vocabulary of size </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">vocab</span><span class="p">)</span><span class="si">}</span><span class="s2">.&quot;</span>
+        <span class="p">)</span>
+        <span class="n">adata</span> <span class="o">=</span> <span class="n">adata</span><span class="p">[:,</span> <span class="n">adata</span><span class="o">.</span><span class="n">var</span><span class="p">[</span><span class="s2">&quot;id_in_vocab&quot;</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">adata</span><span class="p">,</span> <span class="n">gene_ids_in_vocab</span></div>
+
+
+<div class="viewcode-block" id="LoadScgpt.encoder">
+<a class="viewcode-back" href="../../../api.html#biollm.base.load_scgpt.LoadScgpt.encoder">[docs]</a>
+    <span class="k">def</span> <span class="nf">encoder</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">batch_data</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Encodes the batch data to obtain gene embeddings.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            batch_data (dict): A dictionary containing gene IDs and values.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Tensor: Encoded embeddings of the input batch.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">input_gene_ids</span> <span class="o">=</span> <span class="n">batch_data</span><span class="p">[</span><span class="s2">&quot;gene_ids&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+        <span class="n">input_values</span> <span class="o">=</span> <span class="n">batch_data</span><span class="p">[</span><span class="s2">&quot;values&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+
+        <span class="n">src_key_padding_mask</span> <span class="o">=</span> <span class="n">input_gene_ids</span><span class="o">.</span><span class="n">eq</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">vocab</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">pad_token</span><span class="p">])</span>
+        <span class="n">embeddings</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">_encode</span><span class="p">(</span>
+            <span class="n">input_gene_ids</span><span class="p">,</span>
+            <span class="n">input_values</span><span class="p">,</span>
+            <span class="n">src_key_padding_mask</span><span class="o">=</span><span class="n">src_key_padding_mask</span><span class="p">,</span>
+            <span class="n">batch_labels</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="p">)</span>  <span class="c1"># batch_size * max_seq_len * dim</span>
+        <span class="k">return</span> <span class="n">embeddings</span></div>
+
+
+<div class="viewcode-block" id="LoadScgpt.get_cell_embedding">
+<a class="viewcode-back" href="../../../api.html#biollm.base.load_scgpt.LoadScgpt.get_cell_embedding">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_cell_embedding</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">adata</span><span class="p">,</span> <span class="n">do_preprocess</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Generates cell embeddings from the given AnnData object.</span>
+
+<span class="sd">        This method retrieves cell embeddings using a data loader and the model,</span>
+<span class="sd">        processing the data in batches. It returns a NumPy array of embeddings</span>
+<span class="sd">        for each cell in the input AnnData.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            adata: AnnData object containing the data to process.</span>
+<span class="sd">            do_preprocess: (bool) Whether to preprocess the data before loading.</span>
+<span class="sd">                Defaults to False.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            np.ndarray: A 2D NumPy array of shape (n_cells, embsize),</span>
+<span class="sd">            where n_cells is the number of cells and embsize is the embedding size.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            RuntimeError: If any issues arise during model inference or data loading.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;start to get cell embedding!&#39;</span><span class="p">)</span>
+
+        <span class="n">data_loader</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_dataloader</span><span class="p">(</span><span class="n">adata</span><span class="p">,</span> <span class="n">do_preprocess</span><span class="o">=</span><span class="n">do_preprocess</span><span class="p">,</span> <span class="n">do_split</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;get dataloader Done!&#39;</span><span class="p">)</span>
+        <span class="n">cell_embeddings</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">adata</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">embsize</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+        <span class="c1"># celltypes = []</span>
+        <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">(),</span> <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">amp</span><span class="o">.</span><span class="n">autocast</span><span class="p">(</span><span class="n">enabled</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+            <span class="n">count</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">for</span> <span class="n">batch_data</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span><span class="n">data_loader</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;Cell embedding&#39;</span><span class="p">):</span>
+                <span class="n">input_gene_ids</span> <span class="o">=</span> <span class="n">batch_data</span><span class="p">[</span><span class="s2">&quot;gene_ids&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+                <span class="n">input_values</span> <span class="o">=</span> <span class="n">batch_data</span><span class="p">[</span><span class="s2">&quot;values&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+                <span class="c1"># celltypes.extend(list(batch_data[&quot;celltype_labels&quot;].detach().cpu().numpy()))</span>
+                <span class="n">src_key_padding_mask</span> <span class="o">=</span> <span class="n">input_gene_ids</span><span class="o">.</span><span class="n">eq</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">vocab</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">pad_token</span><span class="p">])</span>
+                <span class="n">output</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">(</span>
+                    <span class="n">input_gene_ids</span><span class="p">,</span>
+                    <span class="n">input_values</span><span class="p">,</span>
+                    <span class="n">src_key_padding_mask</span><span class="o">=</span><span class="n">src_key_padding_mask</span><span class="p">,</span>
+                    <span class="n">batch_labels</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                <span class="p">)</span>
+                <span class="n">embeddings</span> <span class="o">=</span> <span class="n">output</span><span class="p">[</span><span class="s1">&#39;cell_emb&#39;</span><span class="p">]</span>  <span class="c1"># get the &lt;cls&gt; position embedding</span>
+                <span class="n">embeddings</span> <span class="o">=</span> <span class="n">embeddings</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
+                <span class="n">cell_embeddings</span><span class="p">[</span><span class="n">count</span><span class="p">:</span> <span class="n">count</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="n">embeddings</span><span class="p">)]</span> <span class="o">=</span> <span class="n">embeddings</span>
+                <span class="n">count</span> <span class="o">+=</span> <span class="nb">len</span><span class="p">(</span><span class="n">embeddings</span><span class="p">)</span>
+            <span class="c1"># cell_embeddings = cell_embeddings / np.linalg.norm(</span>
+            <span class="c1">#     cell_embeddings, axis=1, keepdims=True</span>
+            <span class="c1"># )</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">wandb</span><span class="p">:</span>
+                <span class="n">total_gpu</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">memory_allocated</span><span class="p">()</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1024</span> <span class="o">**</span> <span class="mi">3</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">wandb</span><span class="o">.</span><span class="n">log</span><span class="p">({</span><span class="s1">&#39;GPU&#39;</span><span class="p">:</span> <span class="n">total_gpu</span><span class="p">})</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;get cell embedding Done!&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">cell_embeddings</span></div>
+
+
+<div class="viewcode-block" id="LoadScgpt.get_gene_expression_embedding">
+<a class="viewcode-back" href="../../../api.html#biollm.base.load_scgpt.LoadScgpt.get_gene_expression_embedding">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_gene_expression_embedding</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">adata</span><span class="p">,</span> <span class="n">do_preprocess</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Computes gene expression embeddings for the provided AnnData object.</span>
+
+<span class="sd">        This method processes the data in batches and retrieves embeddings</span>
+<span class="sd">        for each gene. It averages embeddings across batches and returns</span>
+<span class="sd">        both the embeddings and corresponding gene names.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            adata: AnnData object containing the gene expression data.</span>
+<span class="sd">            do_preprocess: (bool) If True, preprocesses the data before</span>
+<span class="sd">                loading. Defaults to False.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Tuple[np.ndarray, List[str]]: A tuple containing:</span>
+<span class="sd">                - A 2D NumPy array of shape (n_genes, embsize) with gene</span>
+<span class="sd">                  embeddings.</span>
+<span class="sd">                - A list of gene names corresponding to the embeddings.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            RuntimeError: If any issues arise during model inference or data processing.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;start to get gene expression!&quot;</span><span class="p">)</span>
+        <span class="n">data_loader</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_dataloader</span><span class="p">(</span><span class="n">adata</span><span class="p">,</span> <span class="n">do_preprocess</span><span class="o">=</span><span class="n">do_preprocess</span><span class="p">,</span> <span class="n">do_split</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="n">gene_embs</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">(),</span> <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">amp</span><span class="o">.</span><span class="n">autocast</span><span class="p">(</span><span class="n">enabled</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+
+            <span class="k">for</span> <span class="n">batch_data</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span><span class="n">data_loader</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;Gene expression embedding&#39;</span><span class="p">):</span>
+
+                <span class="n">input_gene_ids</span> <span class="o">=</span> <span class="n">batch_data</span><span class="p">[</span><span class="s2">&quot;gene_ids&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+                <span class="n">input_values</span> <span class="o">=</span> <span class="n">batch_data</span><span class="p">[</span><span class="s2">&quot;values&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+                <span class="n">src_key_padding_mask</span> <span class="o">=</span> <span class="n">input_gene_ids</span><span class="o">.</span><span class="n">eq</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">vocab</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">pad_token</span><span class="p">])</span>
+                <span class="n">embeddings</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">_encode</span><span class="p">(</span>
+                    <span class="n">input_gene_ids</span><span class="p">,</span>
+                    <span class="n">input_values</span><span class="p">,</span>
+                    <span class="n">src_key_padding_mask</span><span class="o">=</span><span class="n">src_key_padding_mask</span><span class="p">,</span>
+                    <span class="n">batch_labels</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                <span class="p">)</span>  <span class="c1"># batch_size * max_seq_len * dim</span>
+                <span class="n">embeddings</span> <span class="o">=</span> <span class="n">embeddings</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
+                <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">embeddings</span><span class="p">)):</span>
+                    <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">embeddings</span><span class="p">[</span><span class="n">m</span><span class="p">])):</span>
+                        <span class="k">if</span> <span class="n">input_gene_ids</span><span class="p">[</span><span class="n">m</span><span class="p">][</span><span class="n">n</span><span class="p">]</span><span class="o">.</span><span class="n">item</span><span class="p">()</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">gene_embs</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                            <span class="n">gene_embs</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="n">input_gene_ids</span><span class="p">[</span><span class="n">m</span><span class="p">][</span><span class="n">n</span><span class="p">]</span><span class="o">.</span><span class="n">item</span><span class="p">():</span> <span class="p">[</span><span class="n">embeddings</span><span class="p">[</span><span class="n">m</span><span class="p">][</span><span class="n">n</span><span class="p">]]})</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="n">gene_embs</span><span class="p">[</span><span class="n">input_gene_ids</span><span class="p">[</span><span class="n">m</span><span class="p">][</span><span class="n">n</span><span class="p">]</span><span class="o">.</span><span class="n">item</span><span class="p">()]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">embeddings</span><span class="p">[</span><span class="n">m</span><span class="p">][</span><span class="n">n</span><span class="p">])</span>
+
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">wandb</span><span class="p">:</span>
+            <span class="n">total_gpu</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">memory_allocated</span><span class="p">()</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1024</span><span class="o">**</span><span class="mi">3</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">wandb</span><span class="o">.</span><span class="n">log</span><span class="p">({</span><span class="s1">&#39;GPU&#39;</span><span class="p">:</span> <span class="n">total_gpu</span><span class="p">})</span>
+        <span class="k">if</span> <span class="mi">60694</span> <span class="ow">in</span> <span class="n">gene_embs</span><span class="p">:</span>
+            <span class="k">del</span> <span class="n">gene_embs</span><span class="p">[</span><span class="mi">60694</span><span class="p">]</span>
+
+        <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">gene_embs</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">gene_embs</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="n">v</span><span class="p">),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+        <span class="n">gene_ids</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">gene_embs</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+        <span class="n">gene_embs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">gene_embs</span><span class="o">.</span><span class="n">values</span><span class="p">()))</span>
+
+        <span class="n">idx2gene</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_idx2gene</span><span class="p">()</span>
+        <span class="n">gene_names</span> <span class="o">=</span> <span class="p">[</span><span class="n">idx2gene</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">gene_ids</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;get gene expression Done!&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">gene_embs</span><span class="p">,</span> <span class="n">gene_names</span></div>
+
+
+<div class="viewcode-block" id="LoadScgpt.get_embedding">
+<a class="viewcode-back" href="../../../api.html#biollm.base.load_scgpt.LoadScgpt.get_embedding">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_embedding</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">emb_type</span><span class="p">,</span> <span class="n">adata</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">gene_ids</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Retrieves embeddings based on the specified type.</span>
+
+<span class="sd">        This method calls the appropriate embedding method based on the</span>
+<span class="sd">        provided embedding type, which can be &#39;gene&#39;, &#39;cell&#39;, or</span>
+<span class="sd">        &#39;gene-expression&#39;.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            emb_type: (str) Type of embedding to retrieve. Must be one of</span>
+<span class="sd">                &#39;gene&#39;, &#39;cell&#39;, or &#39;gene-expression&#39;.</span>
+<span class="sd">            adata: Optional; AnnData object for cell or gene-expression</span>
+<span class="sd">                embeddings.</span>
+<span class="sd">            gene_ids: Optional; List of gene IDs for gene embeddings.</span>
+<span class="sd">                Required if emb_type is &#39;gene&#39;.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Either:</span>
+<span class="sd">                - np.ndarray: Gene embeddings if emb_type is &#39;gene&#39;.</span>
+<span class="sd">                - np.ndarray: Cell embeddings if emb_type is &#39;cell&#39;.</span>
+<span class="sd">                - Tuple[np.ndarray, List[str]]: Gene expression embeddings</span>
+<span class="sd">                  and names if emb_type is &#39;gene-expression&#39;.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            ValueError: If emb_type is invalid or required arguments are</span>
+<span class="sd">                missing.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">eval</span><span class="p">()</span>
+        <span class="k">assert</span> <span class="n">emb_type</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;gene&#39;</span><span class="p">,</span> <span class="s1">&#39;cell&#39;</span><span class="p">,</span>
+                            <span class="s1">&#39;gene-expression&#39;</span><span class="p">],</span> <span class="s1">&#39;Invalid embedding type, must be gene, cell or gene-expression&#39;</span>
+        <span class="k">if</span> <span class="n">emb_type</span> <span class="o">==</span> <span class="s1">&#39;gene&#39;</span> <span class="ow">and</span> <span class="n">gene_ids</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;gene_ids must not be None if emb_type is gene!&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">emb_type</span> <span class="o">!=</span> <span class="s1">&#39;gene&#39;</span> <span class="ow">and</span> <span class="n">adata</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;adata must not be None if emb_type is cell or gene-expression!&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">emb_type</span> <span class="o">==</span> <span class="s1">&#39;gene&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_gene_embedding</span><span class="p">(</span><span class="n">gene_ids</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">emb_type</span> <span class="o">==</span> <span class="s1">&#39;cell&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_cell_embedding</span><span class="p">(</span><span class="n">adata</span><span class="p">,</span> <span class="n">do_preprocess</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">do_preprocess</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_gene_expression_embedding</span><span class="p">(</span><span class="n">adata</span><span class="p">,</span> <span class="n">do_preprocess</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">do_preprocess</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="LoadScgpt.get_dataloader">
+<a class="viewcode-back" href="../../../api.html#biollm.base.load_scgpt.LoadScgpt.get_dataloader">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_dataloader</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">adata</span><span class="p">,</span> <span class="n">do_preprocess</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">sort_seq_batch</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">do_split</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">shuffle</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">ddp_train</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">drop_last</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Creates a data loader for the provided AnnData object.</span>
+
+<span class="sd">        This method preprocesses the data if specified, and splits it into</span>
+<span class="sd">        training and validation datasets if do_split is True. It prepares</span>
+<span class="sd">        the data loaders for both training and validation.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            adata: AnnData object containing the data to be loaded.</span>
+<span class="sd">            do_preprocess: (bool) Whether to preprocess the data before</span>
+<span class="sd">                creating the data loader. Defaults to True.</span>
+<span class="sd">            sort_seq_batch: (bool) If True, sorts the sequences within</span>
+<span class="sd">                batches. Defaults to False.</span>
+<span class="sd">            do_split: (bool) If True, splits the data into training and</span>
+<span class="sd">                validation sets. Defaults to True.</span>
+<span class="sd">            shuffle: (bool) If True, shuffles the training data. Defaults to False.</span>
+<span class="sd">            ddp_train: (bool) Whether to enable distributed data parallel training.</span>
+<span class="sd">                Defaults to False.</span>
+<span class="sd">            drop_last: (bool) If True, drops the last incomplete batch.</span>
+<span class="sd">                Defaults to False.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            If do_split is True:</span>
+<span class="sd">                Tuple[DataLoader, DataLoader]: A tuple of training and validation</span>
+<span class="sd">                data loaders.</span>
+<span class="sd">            Otherwise:</span>
+<span class="sd">                DataLoader: The training data loader.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">do_preprocess</span><span class="p">:</span>
+            <span class="n">adata</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">preprocess_adata</span><span class="p">(</span><span class="n">adata</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">do_split</span><span class="p">:</span>
+            <span class="n">tokenized_train</span><span class="p">,</span> <span class="n">tokenized_valid</span><span class="p">,</span> <span class="n">train_celltype_labels</span><span class="p">,</span> <span class="n">valid_celltype_labels</span><span class="p">,</span> <span class="n">train_batch_labels</span><span class="p">,</span> <span class="n">valid_batch_labels</span> <span class="o">=</span> <span class="n">make_dataset</span><span class="p">(</span>
+                <span class="n">adata</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">vocab</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">,</span> <span class="n">do_split</span><span class="p">)</span>
+            <span class="n">train_data_pt</span> <span class="o">=</span> <span class="n">prepare_data</span><span class="p">(</span><span class="n">tokenized_train</span><span class="p">,</span> <span class="n">train_celltype_labels</span><span class="p">,</span> <span class="n">train_batch_labels</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">,</span> <span class="n">sort_seq_batch</span><span class="p">)</span>
+            <span class="n">valid_data_pt</span> <span class="o">=</span> <span class="n">prepare_data</span><span class="p">(</span><span class="n">tokenized_valid</span><span class="p">,</span> <span class="n">valid_celltype_labels</span><span class="p">,</span> <span class="n">valid_batch_labels</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">,</span> <span class="n">sort_seq_batch</span><span class="p">)</span>
+            <span class="n">train_loader</span> <span class="o">=</span> <span class="n">prepare_dataloader</span><span class="p">(</span>
+                <span class="n">train_data_pt</span><span class="p">,</span>
+                <span class="n">batch_size</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">batch_size</span><span class="p">,</span>
+                <span class="n">shuffle</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                <span class="n">intra_domain_shuffle</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                <span class="n">drop_last</span><span class="o">=</span><span class="n">drop_last</span><span class="p">,</span>
+                <span class="n">ddp_train</span><span class="o">=</span><span class="n">ddp_train</span>
+            <span class="p">)</span>
+            <span class="n">valid_loader</span> <span class="o">=</span> <span class="n">prepare_dataloader</span><span class="p">(</span>
+                <span class="n">valid_data_pt</span><span class="p">,</span>
+                <span class="n">batch_size</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">batch_size</span><span class="p">,</span>
+                <span class="n">shuffle</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                <span class="n">intra_domain_shuffle</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                <span class="n">drop_last</span><span class="o">=</span><span class="n">drop_last</span><span class="p">,</span>
+                <span class="n">ddp_train</span><span class="o">=</span><span class="n">ddp_train</span>
+            <span class="p">)</span>
+            <span class="k">return</span> <span class="n">train_loader</span><span class="p">,</span> <span class="n">valid_loader</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">tokenized_train</span><span class="p">,</span> <span class="n">train_celltype_labels</span><span class="p">,</span> <span class="n">train_batch_labels</span> <span class="o">=</span> <span class="n">make_dataset</span><span class="p">(</span><span class="n">adata</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">vocab</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">,</span> <span class="n">do_split</span><span class="p">)</span>
+            <span class="n">train_data_pt</span> <span class="o">=</span> <span class="n">prepare_data</span><span class="p">(</span><span class="n">tokenized_train</span><span class="p">,</span> <span class="n">train_celltype_labels</span><span class="p">,</span> <span class="n">train_batch_labels</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">,</span>
+                                         <span class="n">sort_seq_batch</span><span class="p">)</span>
+            <span class="n">train_loader</span> <span class="o">=</span> <span class="n">prepare_dataloader</span><span class="p">(</span>
+                <span class="n">train_data_pt</span><span class="p">,</span>
+                <span class="n">batch_size</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">batch_size</span><span class="p">,</span>
+                <span class="n">shuffle</span><span class="o">=</span><span class="n">shuffle</span><span class="p">,</span>
+                <span class="n">intra_domain_shuffle</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                <span class="n">drop_last</span><span class="o">=</span><span class="n">drop_last</span><span class="p">,</span>
+                <span class="n">ddp_train</span><span class="o">=</span><span class="n">ddp_train</span>
+            <span class="p">)</span>
+            <span class="k">return</span> <span class="n">train_loader</span></div>
+
+
+<div class="viewcode-block" id="LoadScgpt.get_idx2gene">
+<a class="viewcode-back" href="../../../api.html#biollm.base.load_scgpt.LoadScgpt.get_idx2gene">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_idx2gene</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Retrieves a mapping from index to gene IDs.</span>
+
+<span class="sd">        This method returns a list of gene IDs based on the vocabulary.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            List[str]: A list of gene IDs corresponding to the model&#39;s vocabulary.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">vocab</span><span class="o">.</span><span class="n">get_itos</span><span class="p">()</span></div>
+</div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, BGI, Ping Qiu.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
