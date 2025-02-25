@@ -8,11 +8,11 @@
 """
 from biollm.utils.log_manager import LogManager
 import torch
-from .load_scgpt import LoadScgpt
-from .load_mamba import LoadScmamba
-from .load_scbert import LoadScbert
-from .load_scfoundation import LoadScfoundation
-from .load_geneformer import LoadGeneformer
+from biollm.base.load_scgpt import LoadScgpt
+from biollm.base.load_mamba import LoadScmamba
+from biollm.base.load_scbert import LoadScbert
+from biollm.base.load_scfoundation import LoadScfoundation
+from biollm.base.load_geneformer import LoadGeneformer
 from biollm.utils.preprocess import Preprocessor
 import scanpy as sc
 from biollm.utils.utils import load_config
