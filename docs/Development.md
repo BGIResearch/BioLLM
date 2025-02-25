@@ -1,9 +1,9 @@
-**Integration of Novel Models into the BioLLM Framework: A Step-by-Step Guide**
+# Integration of Novel Models into the BioLLM Framework: A Step-by-Step Guide
 
 
 ---
 
-### Abstract
+## Abstract
 
 The BioLLM framework provides a modular system for implementing large language models (LLMs) in single-cell and multi-omics analyses. Here, we describe a systematic procedure for integrating novel models into this framework, followed by the development of custom downstream tasks. Our approach is grounded in a standardized base class, `LoadLlm`, that handles model loading and initialization, thereby enabling consistent interaction and seamless extension. We further illustrate how to implement downstream analyses by extending the `BioTask` class. This step-by-step guide aims to facilitate researchers in adopting the BioLLM framework for diverse models and tasks.
 
