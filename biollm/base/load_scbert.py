@@ -43,7 +43,7 @@ class LoadScbert(LoadLlm):
         Args:
             args (Namespace): Arguments object with settings for model, device, and file paths.
         """
-        super(LoadScbert, self).__int__(args)
+        super(LoadScbert, self).__init__(args)
         self.num_tokens = args.bin_num
         self.max_seq_len = args.max_seq_len
         self.use_g2v = args.use_g2v

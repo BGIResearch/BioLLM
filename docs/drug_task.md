@@ -1,4 +1,4 @@
-## Drug Sensitive Task Documentation
+## BioLLM: Drug Response Task
 
 This document explains the implementation of the `DrugTask` class for drug annotation tasks. It covers the major steps involved in training and evaluating models using various available options like `scGPT`, `scBERT`, `scFoundation`, `Geneformer`, and others. The following sections describe the main features, functions, and usage of the `DrugTask` class in detail.
 
@@ -73,7 +73,7 @@ if __name__ == "__main__":
 Replace `/path/to/config/` with the appropriate path to your configuration files.
 
 ### Example Configurations
-Configurations for each model are available in the `biollm/config/drug/` directory. Adjust the configuration file to specify paths to the input and output data, model parameters, and other settings as required.
+Configurations for each model are available in the `biollm/config/drug/test/` directory. Adjust the configuration file to specify paths to the input and output data, model parameters, and other settings as required.
 
 #### Notes
 - Ensure the appropriate configuration file is provided.

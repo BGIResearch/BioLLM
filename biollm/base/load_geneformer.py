@@ -40,7 +40,7 @@ class LoadGeneformer(LoadLlm):
             cfs_file (str, optional): Path to a configuration file for loading settings.
             data_path (str, optional): Path to the input data file.
         """
-        super(LoadGeneformer, self).__int__(args, cfs_file)
+        super(LoadGeneformer, self).__init__(args, cfs_file)
         self.vocab = self.load_vocab()
         if data_path is not None:
             self.args.input_file = data_path

@@ -38,7 +38,7 @@ class LoadScfoundation(LoadLlm):
         Dictionary mapping gene symbols to indices.
     """
     def __init__(self, args=None, cfs_file=None):
-        super(LoadScfoundation, self).__int__(args, cfs_file)
+        super(LoadScfoundation, self).__init__(args, cfs_file)
         self.vocab = self.load_vocab()
         self.model, self.config = self.load_model()
         self.device = torch.device(self.args.device)

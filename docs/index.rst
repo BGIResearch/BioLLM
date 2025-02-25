@@ -23,6 +23,7 @@ Welcome to the documentation for BioLLM,  a standardized framework designed to f
    GRN
    Annotation
    drug_task
+   Development
 
 .. toctree::
    :maxdepth: 2

@@ -41,7 +41,7 @@ class LoadScgpt(LoadLlm):
         Args:
             args (Namespace): Command line arguments containing model configuration.
         """
-        super(LoadScgpt, self).__int__(args)
+        super(LoadScgpt, self).__init__(args)
         self.vocab = self.load_vocab()
         self.model = self.load_model()
         self.init_model()
