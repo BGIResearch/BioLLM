@@ -80,7 +80,7 @@ Configurations for each model are available in the `biollm/config/drug/test/` di
 - Customize paths to the configuration and data directories based on your environment.
 
 ### Full Code
-
+#### Task Execution
 ```python
 import json
 import random
@@ -184,7 +184,7 @@ class DrugTask(BioTask):
                         print(f'loss {loss:.4f}   pcc {pcc:.4f}   scc {scc:.4f}')
                     break
 
-    # 测试
+    # Test
     def test(self, model, validation_data):
         print('Testing...')
         model.eval()  # switch off batch normalization and dropout
@@ -291,4 +291,56 @@ if __name__ == "__main__":
         obj = DrugTask(config_file)
         obj.run()
 ```
+#### Visualization
+```python
+import pandas as pd
+import matplotlib.pyplot as plt
+import numpy as np
 
+# Load the Excel data
+file_path = './drug.xlsx' # the PCC and SRCC score for each method
+df = pd.read_excel(file_path)
+
+# Set the model names as the index (first column)
+df.set_index(df.columns[0], inplace=True)
+
+# Calculate the average of PCC and SRCC for each model
+df['Average'] = df[['PCC', 'SRCC']].mean(axis=1)
+
+# Sort the dataframe by the average values in descending order
+df = df.sort_values(by='Average', ascending=True)
+
+# Plot the grouped bar chart
+fig, ax = plt.subplots(figsize=(12, 6))
+
+# Create indices for the models (y-axis)
+indices = np.arange(len(df.index))
+
+# Width of the bars
+bar_width = 0.35
+
+# Plot each category
+bars1 = ax.barh(indices, df['PCC'], bar_width, label='Pearson', color="#D86830")
+bars2 = ax.barh(indices + bar_width, df['SRCC'], bar_width, label='Spearman', color="#D86830", alpha=0.3)
+
+# Add labels and titles
+ax.set_xlabel('Correlation')
+ax.set_yticks(indices + bar_width / 2)
+ax.set_yticklabels(df.index)
+
+# Add text labels on the bars
+for bar in bars1:
+    width = bar.get_width()
+    ax.text(width, bar.get_y() + bar.get_height() / 2, f'{width:.3f}', ha='left', va='center')
+
+for bar in bars2:
+    width = bar.get_width()
+    ax.text(width, bar.get_y() + bar.get_height() / 2, f'{width:.3f}', ha='left', va='center')
+
+# Place the legend outside the plot
+ax.legend(title='Variable', bbox_to_anchor=(1.05, 1), loc='upper left')
+
+plt.tight_layout()
+plt.show()
+```
+![img_4.png](img_4.png)
