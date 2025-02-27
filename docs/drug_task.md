@@ -343,4 +343,8 @@ ax.legend(title='Variable', bbox_to_anchor=(1.05, 1), loc='upper left')
 plt.tight_layout()
 plt.show()
 ```
+#### Sample Data
+![img_8.png](img_8.png)
+
+#### Figure
 ![img_4.png](img_4.png)

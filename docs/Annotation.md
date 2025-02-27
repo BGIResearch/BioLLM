@@ -279,4 +279,8 @@ df = df.set_index("dataset")
 plot_results_table(df)
 
 ```
+#### Sample Data
+![img_5.png](img_5.png)
+
+#### Figure
 ![img_3.png](img_3.png)

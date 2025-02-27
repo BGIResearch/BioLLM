@@ -310,7 +310,9 @@ legend_color = ax.legend(handles=legend_elements_color, loc='upper right', bbox_
 plt.tight_layout()
 plt.show()
 ```
-
+#### Sample Data
+![img_9.png](img_9.png)
+#### Figure
 ![img.png](img.png)
 ## Configurations
 

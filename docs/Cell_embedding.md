@@ -297,6 +297,10 @@ for group, size in zip(["Zheng68K", "blood", "kidney", "liver"], GROUPS_SIZE):
 plt.tight_layout()
 plt.show()
 ```
+#### Sample Data
+![img_6.png](img_6.png)
+
+#### Figure
 ![img_1.png](img_1.png)
 ```python
 import pandas as pd
@@ -310,9 +314,13 @@ from typing import Optional
 df1 = pd.read_csv('./zero-shot_cellemb_aws_celltype.csv') # asw score for clusters based on cell type
 df2 = pd.read_csv('./zero-shot_cellemb_aws_batch.csv') # asw score for clusters based on batch
 merged_df = pd.merge(df1, df2, on=['model', 'datasets'])
-pivot_df = merged_df.pivot(index='model', columns='data', values=['aws_celltype', 'aws_batch'])
+pivot_df = merged_df.pivot(index='model', columns='datasets', values=['aws_celltype', 'aws_batch'])
 pivot_df.columns = [f'{i}_{j}' for i, j in pivot_df.columns]
-metric_type_row = pd.DataFrame({col: ['aws_celltype' if 'aws_celltype' in col else 'aws_batch' for col in pivot_df.columns]}, index=['Metric Type'])
+metric_type_row = pd.DataFrame(
+    [['aws_celltype' if 'aws_celltype' in col else 'aws_batch' for col in pivot_df.columns]],
+    columns=pivot_df.columns,
+    index=['Metric Type']
+)
 df = pd.concat([metric_type_row, pivot_df])
 df = df.reset_index().rename(columns={'index': 'model'})
 df.set_index('model', inplace=True)
@@ -409,6 +417,10 @@ def plot_results_table(df, show: bool = True, save_path: Optional[str] = None) -
 plot_results_table(df, show=True)
 
 ```
+#### Sample Data
+![img_7.png](img_7.png)
+
+#### Figure
 ![img_2.png](img_2.png)
 ## Config Directory
 
