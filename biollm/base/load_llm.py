@@ -29,7 +29,7 @@ class LoadLlm(object):
         is_master (bool): Flag indicating if the process is the master process in distributed settings.
         wandb (wandb.Run or None): Weights & Biases tracking instance, initialized if tracking is enabled.
     """
-    def __int__(self, args=None, cfs_file=None):
+    def __init__(self, args=None, cfs_file=None):
         """
         Initializes the LoadLlm class, setting up logging, configuration loading, and tracking if specified.
 
