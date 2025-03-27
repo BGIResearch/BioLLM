@@ -3,7 +3,7 @@
 """
 @author: Ping Qiu  qiuping1@genomics.cn
 @last modified by: Ping Qiu
-@file: annotation_task.py
+@file: universal_anno.py
 @time: 2025/3/5 15:34
 """
 
@@ -20,9 +20,9 @@ from biollm.trainer.trainer import Trainer
 from biollm.utils.utils import split_data
 
 
-class AnnotationTask(BioTask):
+class UniversalAnno(BioTask):
     def __init__(self, config_file):
-        super(AnnotationTask, self).__init__(config_file)
+        super(UniversalAnno, self).__init__(config_file)
         self.logger.info(self.args)
 
         # get cell embedding

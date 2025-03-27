@@ -3,7 +3,7 @@
 """
 @author: Ping Qiu  qiuping1@genomics.cn
 @last modified by: Ping Qiu
-@file: cell_emb_task.py
+@file: cell_embedding.py
 @time: 2025/3/12 10:21
 """
 from biollm.tasks.bio_task import BioTask
@@ -15,9 +15,9 @@ import pickle
 from scib_metrics.benchmark import Benchmarker
 
 
-class CellEmbTask(BioTask):
+class CellEmbedding(BioTask):
     def __init__(self, config_file):
-        super(CellEmbTask, self).__init__(config_file)
+        super(CellEmbedding, self).__init__(config_file)
         self.adata = sc.read_h5ad(self.args.input_file)
         if 'max_seq_len' in self.args and self.args.max_seq_len < 0:
             self.args.max_seq_len = self.adata.shape[1]
@@ -92,5 +92,5 @@ if __name__ == "__main__":
 
     for i in files:
         config_file = i
-        obj = CellEmbTask(config_file)
+        obj = CellEmbedding(config_file)
         obj.run()

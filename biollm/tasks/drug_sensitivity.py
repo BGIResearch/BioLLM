@@ -12,12 +12,12 @@ import tempfile
 import csv
 from biollm.tasks.bio_task import BioTask
 from biollm.algorithm.drug import PyTorchMultiSourceGCNModel
-from biollm.tasks.drug.drug_data_process import DrugDataProcess
+from biollm.data_preprocess.drug_data_process import DrugDataProcess
 
 
-class DrugTask(BioTask):
+class DrugSensitivity(BioTask):
     def __init__(self, config_file):
-        super(DrugTask, self).__init__(config_file)
+        super(DrugSensitivity, self).__init__(config_file)
         self.config_file = config_file
         self.device = self.args.device
         self.leave_drug = self.args.leave_drug
@@ -200,5 +200,5 @@ if __name__ == "__main__":
             config_file = f'/home/share/huadjyin/home/s_qiuping1/hanyuxuan/biollm/config/drug/{model_select}_drug.toml'
         else:
             config_file = '/home/share/huadjyin/home/s_qiuping1/hanyuxuan/biollm/config/drug/drug.toml'
-        obj = DrugTask(config_file)
+        obj = DrugSensitivity(config_file)
         obj.run()

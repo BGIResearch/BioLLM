@@ -11,8 +11,8 @@ import pickle
 import toml
 from tqdm import tqdm
 from functools import wraps
-from biollm.tasks.cell_emb.cell_emb_task import CellEmbTask
-from biollm.tasks.annotation.annotation_task import AnnotationTask
+from biollm.tasks.cell_embedding import CellEmbTask
+from biollm.tasks.annotation.universal_anno import AnnotationTask
 
 
 def dumps_result(output, res):
