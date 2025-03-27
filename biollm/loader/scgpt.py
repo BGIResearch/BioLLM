@@ -129,7 +129,6 @@ class Scgpt(LoaderBase):
         vocab.set_default_index(vocab['<pad>'])
         return vocab
 
-
     def freezon_model(self, keep_layers=[-2]):
         """
         Freezes model parameters except for specified layers.
