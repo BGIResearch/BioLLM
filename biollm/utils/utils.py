@@ -13,6 +13,7 @@ import numpy as np
 import torch
 from functools import wraps
 import pynvml
+from sklearn.model_selection import train_test_split
 
 
 def load_config(config_file):
@@ -84,3 +85,27 @@ def distributed_concat(tensor, num_total_examples, world_size):
     concat = torch.cat(output_tensors, dim=0)
     # truncate the dummy elements added by SequentialDistributedSampler
     return concat[:num_total_examples]
+
+
+def split_data(x: np.ndarray, y: np.ndarray, train_ratio=0.8, val_ratio=0.1, test_ratio=0.1, random_state=42):
+    """
+    Split data into training, validation, and test sets.
+
+    Parameters:
+    x (np.ndarray): Feature matrix.
+    y (np.ndarray): Labels.
+    train_ratio (float): Proportion of data for training.
+    val_ratio (float): Proportion of data for validation.
+    test_ratio (float): Proportion of data for testing.
+    random_state (int): Random seed for reproducibility.
+
+    Returns:
+    Tuple: (x_train, y_train, x_val, y_val, x_test, y_test)
+    """
+    assert train_ratio + val_ratio + test_ratio == 1, "Ratios must sum to 1."
+
+    x_train, x_temp, y_train, y_temp = train_test_split(x, y, test_size=(1 - train_ratio), random_state=random_state)
+    val_size = val_ratio / (val_ratio + test_ratio)  # Normalize validation size in remaining data
+    x_val, x_test, y_val, y_test = train_test_split(x_temp, y_temp, test_size=(1 - val_size), random_state=random_state)
+
+    return x_train, y_train, x_val, y_val, x_test, y_test

@@ -636,7 +636,7 @@ def GI_subgroup(pert_metric):
     return GI_type2Score
 
 def node_specific_batch_out(models, batch):
-    # Returns output for all node specific models as a matrix of dimension batch_size x nodes
+    # Returns output for all node specific loader as a matrix of dimension batch_size x nodes
     outs = []
     for idx in range(len(models)):
         outs.append(models[idx](batch).detach().cpu().numpy()[:,idx])

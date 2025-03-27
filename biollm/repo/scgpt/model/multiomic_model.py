@@ -633,7 +633,7 @@ class FlashTransformerEncoderLayer(nn.Module):
 
     Args:
         d_model: the number of expected features in the input (required).
-        nhead: the number of heads in the multiheadattention models (required).
+        nhead: the number of heads in the multiheadattention loader (required).
         dim_feedforward: the dimension of the feedforward network model (default=2048).
         dropout: the dropout value (default=0.1).
         activation: the activation function of intermediate layer, relu or gelu (default=relu).

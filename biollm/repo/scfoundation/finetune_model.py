@@ -67,7 +67,7 @@ class LinearProbingClassifier(nn.Module):
 
 if __name__=='__main__':
     
-    finetune_model = LinearProbingClassifier(ckpt_path='./models/models.ckpt')
+    finetune_model = LinearProbingClassifier(ckpt_path='./loader/loader.ckpt')
     sample_list = {'x': torch.zeros([8,18264]).cuda(),'targets':torch.rand(8,12).cuda()}
     sample_list['x'][:,:100]=1
     finetune_model.build()

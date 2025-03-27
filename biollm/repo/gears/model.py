@@ -1,11 +1,8 @@
-import numpy as np
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
-from torch.nn import Sequential, Linear, ReLU
 
 from torch_geometric.nn import SGConv
-from biollm.base.load_mamba import LoadScmamba
+from biollm.loader.mamba import Scmamba
 
 class MLP(torch.nn.Module):
 
@@ -150,7 +147,7 @@ class GEARS_Model(torch.nn.Module):
                 else:
                     model_train_data = {}
                     # model_x = x.reshape(-1, self.num_genes).detach().cpu().numpy()
-                    if isinstance(self.model_loader, LoadScmamba):
+                    if isinstance(self.model_loader, Scmamba):
                         model_train_data = {
                             'gene_ids': data.gene_ids,
                             'values': data.express_values,
@@ -158,7 +155,7 @@ class GEARS_Model(torch.nn.Module):
                         }
                     # model_train_data = self.model_loader.make_pertdata(model_x, self.args['gene_list'])
                     emb = self.model_loader.encoder(model_train_data) # batch_size * max_seq_len * dim
-                    if isinstance(self.model_loader, LoadScmamba):
+                    if isinstance(self.model_loader, Scmamba):
                         if self.ori_index is None:
                             gene_ids = {_id: idx for idx, _id in enumerate(data.gene_ids[0, :].detach().cpu().numpy())}
                             self.ori_index = [gene_ids[i] for i in self.ori_gene_ids]

@@ -193,7 +193,7 @@ def prepare_dataloader(
     shuffle: bool = False,
     intra_domain_shuffle: bool = False,
     drop_last: bool = False,
-    num_workers: int = 0,
+    num_workers: int = 2,
     per_seq_batch_sample: bool = False,
     ddp_train: bool = False
 ) -> DataLoader:

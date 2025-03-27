@@ -577,9 +577,9 @@ def gen_attention_mask(minibatch_encoding, max_len = None):
     return torch.tensor(attention_mask).to("cuda")
 
 # get cell embeddings excluding padding
-def mean_nonpadding_embs(embs, original_lens):
+def mean_nonpadding_embs(embs, original_lens, device):
     # mask based on padding lengths
-    mask = torch.arange(embs.size(1)).unsqueeze(0).to("cuda") < original_lens.unsqueeze(1)
+    mask = torch.arange(embs.size(1)).unsqueeze(0).to(device) < original_lens.unsqueeze(1)
 
     # extend mask dimensions to match the embeddings tensor
     mask = mask.unsqueeze(2).expand_as(embs)

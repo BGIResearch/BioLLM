@@ -10,6 +10,7 @@
 change log:
     2024/04/03  create file.
 """
+import pickle
 
 from sklearn.metrics import accuracy_score, f1_score
 from torch.optim import Adam
@@ -72,6 +73,11 @@ def train(model, train_loader, val_loader, args, local_rank, world_size, wandb=N
             pred_num = labels.size(0)
             correct_num = torch.eq(final, labels).sum(dim=-1)
             cum_acc += torch.true_divide(correct_num, pred_num).mean().item()
+            if is_master:
+                if wandb:
+                    wandb.log({
+                        "train/step_loss": loss.item()
+                    })
 
         epoch_loss = running_loss / index
         epoch_acc = 100 * cum_acc / index
@@ -85,12 +91,14 @@ def train(model, train_loader, val_loader, args, local_rank, world_size, wandb=N
         if args.distributed:
             dist.barrier()
         scheduler.step()
-        val_loss = evaluate(i, model, val_loader, loss_fn, device, args, local_rank, world_size, wandb)
+        val_loss, pre_res, true_res = evaluate(i, model, val_loader, loss_fn, device, args, local_rank, world_size, wandb)
         if val_loss < best_val_loss:
             best_val_loss = val_loss
             best_model = copy.deepcopy(model)
             if is_master:
                 print(f"Best model with score {best_val_loss:5.4f}")
+                # with open(args.output_dir+'/val_predict_res.pk', 'wb') as fd:
+                #     pickle.dump({'pred_res': pre_res, 'true_res': true_res}, fd)
             patience = 0
         else:
             patience += 1
@@ -154,8 +162,8 @@ def evaluate(epoch, model, val_loader, loss_fn, device, args, local_rank,  world
                     'eval/acc': cur_acc,
                     'eval/f1': f1
                 })
-    del predictions, truths
-    return val_loss
+    # del predictions, truths
+    return val_loss, predictions, truths
 
 
 def predict(model, data_loader, world_size, device, args):

@@ -1,0 +1,38 @@
+# the param for the llm model, to init the foundation model.
+model_used = "scgpt"
+model_file = '/home/share/huadjyin/home/s_qiuping1/workspace/omics_model/downstream_tasks/test/grn/model/scgpt_bc/best_model.pt'
+#model_file = '/home/share/huadjyin/home/s_qiuping1/workspace/omics_model/bio_model/biollm/biollm/result/anno/ms/anno_scgpt_best_model.pt'
+model_param_file = '/home/share/huadjyin/home/s_qiuping1/workspace/omics_model/downstream_tasks/test/grn/model/scgpt_bc/args.json'
+vocab_file = '/home/share/huadjyin/home/s_qiuping1/workspace/omics_model/downstream_tasks/test/grn/model/scgpt_bc/vocab.json'
+# test h5ad, sc express matrix
+input_file = '/home/share/huadjyin/home/s_qiuping1/workspace/omics_model/bio_model/biollm/case/data/annotation/human/organs/colon/test.h5ad'  # h5ad for the sc express matrix
+output_dir = '/home/share/huadjyin/home/s_qiuping1/workspace/omics_model/CFM/data/case/zero-shot/imputation/scgpt/colon'
+do_preprocess = true
+distributed = false
+#task = 'Cell_annotation' # Cell_annotation/Integration
+append_cls = true
+device = 'cuda'
+mask_ratio = 0.2
+include_zero_gene = false
+max_seq_len = 3001
+input_style = "binned"  # "normed_raw", "log1p", or "binned"
+output_style = "binned"  # "normed_raw", "log1p", or "binned"
+# settings for training
+nlayers_cls = 3
+pad_value = -2
+do_mvc = true
+do_dab = false
+input_emb_style = "continuous"  # "category" or "continuous" or "scaling"
+cell_emb_style = "cls"  # "avg-pool" or "w-pool" or "cls"
+do_sample_in_train = false  # sample the bernoulli in training
+per_seq_batch_sample = false
+lr = 0.0001
+batch_size = 32
+eval_batch_size = 32
+fast_transformer = true
+fast_transformer_backend = "flash"
+
+# wandb setting
+weight_bias_track = false
+project_name = 'biollm_annotation'
+exp_name = 'scgpt_colon'

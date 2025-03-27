@@ -75,7 +75,7 @@ def test_datatable_save():
     with pytest.raises(ValueError):
         dt.save(file_path)
 
-    # actually load some tutorials data and test saving
+    # actually load some tutorials_bak data and test saving
     dt.data = Dataset.from_dict({"a": [1]})
     dt.save(file_path)
     assert file_path.is_file()

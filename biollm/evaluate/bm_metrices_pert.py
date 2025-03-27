@@ -12,7 +12,7 @@ change log:
 """
 import torch
 from torch.utils.data import DataLoader
-from biollm.model.perturbation import ScgptPerturbation
+from biollm.algorithm.perturbation import ScgptPerturbation
 from typing import Dict, Optional
 import numpy as np
 from anndata import AnnData

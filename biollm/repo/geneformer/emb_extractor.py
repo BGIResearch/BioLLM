@@ -93,7 +93,7 @@ def get_embs(model,
 
         if emb_mode == "cell":
 
-            mean_embs = mean_nonpadding_embs(embs_i, original_lens)
+            mean_embs = mean_nonpadding_embs(embs_i, original_lens, device)
             embs_list += [mean_embs]
 
         else:

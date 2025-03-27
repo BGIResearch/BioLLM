@@ -51,6 +51,9 @@ class SCDataset(Dataset):
 
 
 def make_scbert_adata(adata, ref_genes):
+    if adata.raw is not None:
+        adata.X = adata.raw.X
+        logger.info("Use the raw X...")
     if sparse.issparse(adata.X):
         adata.X = adata.X.toarray()
     logger.info(adata)
@@ -78,14 +81,16 @@ def make_scbert_adata(adata, ref_genes):
     if adata.X.min() >= 0:
         normalize_total = False
         log1p = False
-        if adata.X.max() > 20:
+        if adata.X.max() > 30:
             log1p = True
             if adata.X.max() - np.int32(adata.X.max()) == np.int32(0):
                 normalize_total = 1e4
         if normalize_total:
             sc.pp.normalize_total(adata, target_sum=normalize_total)
+            logger.info('do normalize total...')
         if log1p:
             sc.pp.log1p(adata)
+            logger.info('do log1p...')
     else:
         raise Exception('the express matrix have been scale, exit!')
     logger.info('end to preprocess')
@@ -103,10 +108,53 @@ def make_dataset(adata, output_dir, bin_num):
 
     label = torch.from_numpy(label)
     data = adata.X
-    sss = StratifiedShuffleSplit(n_splits=1, test_size=0.2, random_state=2021)
-    for index_train, index_val in sss.split(data, label):
-        data_train, label_train = data[index_train], label[index_train]
-        data_val, label_val = data[index_val], label[index_val]
-        train_dataset = SCDataset(data_train, bin_num, label_train)
-        val_dataset = SCDataset(data_val, bin_num, label_val)
+    # random split
+    train_data, val_data, train_label, val_label = split_data(data, label, 0.8, 42)
+    train_dataset = SCDataset(train_data, bin_num, train_label)
+    val_dataset = SCDataset(val_data, bin_num, val_label)
+    # sss = StratifiedShuffleSplit(n_splits=1, test_size=0.2, random_state=2021)
+    # for index_train, index_val in sss.split(data, label):
+    #     data_train, label_train = data[index_train], label[index_train]
+    #     data_val, label_val = data[index_val], label[index_val]
+    #     train_dataset = SCDataset(data_train, bin_num, label_train)
+    #     val_dataset = SCDataset(data_val, bin_num, label_val)
     return train_dataset, val_dataset
+
+
+def split_data(data, label, train_ratio=0.8, random_seed=42):
+    """
+    将数据划分为训练集和验证集。
+
+    Args:
+        data (np.ndarray): 数据数组。
+        label (np.ndarray): 标签数组。
+        train_ratio (float): 训练集所占比例，默认为 0.8。
+        random_seed (int, optional): 随机种子，保证划分可重复。
+
+    Returns:
+        tuple: (train_data, val_data, train_label, val_label)
+    """
+    assert len(data) == len(label), "Data and label must have the same length."
+
+    # 设置随机种子
+    if random_seed is not None:
+        np.random.seed(random_seed)
+
+    # 随机打乱索引
+    indices = np.arange(len(data))
+    np.random.shuffle(indices)
+
+    # 打乱数据和标签
+    data = data[indices]
+    label = label[indices]
+
+    # 计算训练集大小
+    train_size = int(len(data) * train_ratio)
+
+    # 划分训练集和验证集
+    train_data = data[:train_size]
+    val_data = data[train_size:]
+    train_label = label[:train_size]
+    val_label = label[train_size:]
+
+    return train_data, val_data, train_label, val_label

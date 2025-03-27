@@ -65,7 +65,7 @@ class DataCollator:
         self, examples: List[Dict[str, torch.Tensor]]
     ) -> Dict[str, torch.Tensor]:
         """
-        Each tutorials is like:
+        Each tutorials_bak is like:
             {'id': tensor(184117),
             'genes': tensor([36572, 17868, ..., 17072]),
             'expressions': tensor([ 0.,  2., ..., 18.])}
