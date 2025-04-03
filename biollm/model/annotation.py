@@ -13,6 +13,7 @@ from ..repo.scfoundation.load import gatherData
 import torch
 from torch import nn
 
+
 class LinearProbingClassifier(nn.Module):
 
     def __init__(self, model, config, frozenmore=False):
@@ -63,7 +64,7 @@ class LinearProbingClassifier(nn.Module):
         return logits
 
 
-class ClsDecoder(nn.Module):
+class ScgptClassification(nn.Module):
     """
     Decoder for classification task.
     """
@@ -92,6 +93,7 @@ class ClsDecoder(nn.Module):
         for layer in self._decoder:
             x = layer(x)
         return self.out_layer(x)
+
 
 class MVCDecoder(nn.Module):
     """

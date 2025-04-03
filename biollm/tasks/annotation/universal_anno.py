@@ -76,5 +76,5 @@ if __name__ == "__main__":
 
     # config_file = sys.argv[1]
     config_file = '/home/share/huadjyin/home/s_qiuping1/workspace/BioLLM2/biollm/config/anno/scfoundation.toml'
-    obj = AnnotationTask(config_file)
+    obj = UniversalAnno(config_file)
     obj.run()

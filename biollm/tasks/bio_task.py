@@ -78,11 +78,12 @@ class BioTask(object):
             self.device = torch.device('cuda:' + self.args.device)
         self.gene2ids = None
         self.load_obj = None
-
+        self.data_handler = None
         if data_path is not None:
             self.args.input_file = data_path
         if load_model:
             self.model = self.load_model()
+            self.data_handler = self.load_obj.data_handler
         self.vocab = self.load_vocab()
         self.is_master = int(os.environ['RANK']) == 0 if 'RANK' in os.environ else True
         if 'weight_bias_track' in self.args and self.args.weight_bias_track and self.is_master:
@@ -140,54 +141,7 @@ class BioTask(object):
             self.load_obj = Geneformer(self.args)
             return self.load_obj.model
         else:
-            return None
-
-    def read_h5ad(self, h5ad_file=None, preprocess=True, filter_gene=False):
-        """
-        Reads single-cell data from an h5ad file, with options for preprocessing and gene filtering.
-
-        Args:
-            h5ad_file (str, optional): Path to the h5ad file. If None, uses the input file from args.
-            preprocess (bool): Whether to apply preprocessing to the data.
-            filter_gene (bool): Whether to filter genes based on vocabulary.
-
-        Returns:
-            AnnData: The preprocessed single-cell data.
-
-        Raises:
-            ValueError: If preprocessing requires specific parameters not found in args.
-        """
-        if h5ad_file is not None:
-            adata = sc.read_h5ad(h5ad_file)
-        else:
-            adata = sc.read_h5ad(self.args.input_file)
-        if filter_gene:
-            adata = self.filter_genes(adata)
-        if preprocess:
-            hvg = self.args.n_hvg if 'n_hvg' in self.args else False
-            adata = preprocess_adata(adata, hvg)
-        return adata
-
-    def filter_genes(self, adata):
-        """
-        Filters genes in the AnnData object based on the vocabulary attribute.
-
-        Args:
-            adata (AnnData): Annotated single-cell data matrix.
-
-        Returns:
-            AnnData: Filtered AnnData object with genes matching the vocabulary.
-
-        Raises:
-            Exception: If vocabulary is not set.
-        """
-        if self.vocab is None:
-            raise Exception("No vocabulary, please set vocabulary first")
-        adata.var['is_in_vocab'] = [1 if gene in self.vocab else 0 for gene in adata.var_names]
-        in_vocab_rate = np.sum(adata.var["is_in_vocab"]) / adata.var.shape[0]
-        self.logger.info(f'match {in_vocab_rate} genes in vocab of size {adata.var.shape[0]}')
-        adata = adata[:, adata.var["id_in_vocab"] >= 0].copy()
-        return adata
+            raise ValueError(f'{self.args.model_uses} is out of range!')
 
     def run(self):
         """
@@ -203,24 +157,4 @@ class BioTask(object):
             return self.get_bgi_emb(emb_type, adata, gene_ids)
         else:
             return self.load_obj.get_embedding(emb_type, adata=adata, gene_ids=gene_ids)
-
-    def get_cfm_emb(self, emb_type, adata=None, gene_ids=None):
-        sys.path.insert(0, '/home/share/huadjyin/home/lishaoshuai/02code/CFM-main')
-        if self.args.model_used == 'cfm_v1':
-            from cfm.task.Get_Embedding import GeneEmbeddingExtractor
-            extractor = GeneEmbeddingExtractor(adata, self.args)
-        elif self.args.model_used == 'cfm_v2':
-            from cfm.task.Get_EmbeddingV2 import GeneEmbeddingExtractorV2
-            extractor = GeneEmbeddingExtractorV2(adata, self.args)
-        else:
-            raise ValueError(f"{self.args.model_used} is out off range...")
-
-        return extractor.get_embedding(emb_type, gene_ids)
-
-    def get_bgi_emb(self, emb_type, adata=None, gene_ids=None):
-        sys.path.insert(0, self.args.bgi_linux_path)
-        module = importlib.import_module(self.args.bgi_module_name)
-        extractor_class = getattr(module, self.args.bgi_class_name)
-        extractor = extractor_class(adata, self.args)
-        return extractor.get_embedding(emb_type, gene_ids)
 

@@ -9,12 +9,22 @@ import torch.distributed as dist
 from biollm.utils.utils import get_reduced
 
 
-def train(model, train_loader, val_loader, scaler, optimizer, scheduler, device, args, criterion_cls, wandb=None, is_master=True):
+def train(model, train_loader, val_loader, args, wandb=None):
     """
     Train the model for one epoch.
     """
+    optimizer = torch.optim.Adam(model.parameters(), lr=args.lr, eps=1e-4)
+    scheduler = torch.optim.lr_scheduler.StepLR(
+        optimizer, args.schedule_interval, gamma=args.schedule_ratio
+    )
+    scaler = torch.cuda.amp.GradScaler(enabled=True)
+    local_rank = args.local_rank
+    torch.cuda.set_device(local_rank)
+    device = torch.device("cuda", local_rank)
+    is_master = args.is_master
     best_val_loss = float("inf")
     best_model = None
+    loss_fn = torch.nn.CrossEntropyLoss(weight=None)
     for epoch in range(1, args.epochs + 1):
         if args.distributed:
             train_loader.sampler.set_epoch(epoch)
@@ -42,7 +52,7 @@ def train(model, train_loader, val_loader, scaler, optimizer, scheduler, device,
                     do_sample=False,
                 )
                 loss = 0.0
-                loss_cls = criterion_cls(output_dict["cls_output"], celltype_labels)
+                loss_cls = loss_fn(output_dict["cls_output"], celltype_labels)
                 loss = loss + loss_cls
                 acc = (output_dict["cls_output"].argmax(1) == celltype_labels).sum().item() / celltype_labels.size(0)
             model.zero_grad()
@@ -102,7 +112,7 @@ def train(model, train_loader, val_loader, scaler, optimizer, scheduler, device,
 
         if args.distributed:
             dist.barrier()
-        val_loss = evaluate(epoch, model, val_loader, device, args, criterion_cls, return_pred=False, wandb=wandb, is_master=is_master)
+        val_loss = evaluate(epoch, model, val_loader, loss_fn, args, wandb=wandb, return_pred=False)
         if val_loss < best_val_loss:
             best_val_loss = val_loss
             best_model = model
@@ -117,7 +127,7 @@ def train(model, train_loader, val_loader, scaler, optimizer, scheduler, device,
     return best_model
 
 
-def evaluate(epoch, model, loader, device, args, criterion_cls, return_pred=False, wandb=None, is_master=True):
+def evaluate(epoch, model, val_loader, loss_fn, args, wandb=None, return_pred=False):
     """
     Evaluate the model on the evaluation data.
     """
@@ -126,8 +136,12 @@ def evaluate(epoch, model, loader, device, args, criterion_cls, return_pred=Fals
     total_num = 0
     predictions = []
     trues = []
+    local_rank = args.local_rank
+    torch.cuda.set_device(local_rank)
+    device = torch.device("cuda", local_rank)
+    is_master = args.is_master
     with torch.no_grad():
-        for batch_data in loader:
+        for batch_data in val_loader:
             input_gene_ids = batch_data["gene_ids"].to(args.device)
             input_values = batch_data["values"].to(args.device)
             celltype_labels = batch_data["celltype_labels"].to(args.device)
@@ -145,7 +159,7 @@ def evaluate(epoch, model, loader, device, args, criterion_cls, return_pred=Fals
                     do_sample=False,
                 )
                 output_values = output_dict["cls_output"]
-                loss = criterion_cls(output_values, celltype_labels)
+                loss = loss_fn(output_values, celltype_labels)
 
             total_loss += loss.item() * len(input_gene_ids)
             total_num += len(input_gene_ids)
@@ -154,8 +168,8 @@ def evaluate(epoch, model, loader, device, args, criterion_cls, return_pred=Fals
             trues.append(celltype_labels)
 
         if args.distributed:
-            predictions = distributed_concat(torch.cat(predictions, dim=0), len(loader.dataset), args.world_size)
-            trues = distributed_concat(torch.cat(trues, dim=0), len(loader.dataset), args.world_size)
+            predictions = distributed_concat(torch.cat(predictions, dim=0), len(val_loader.dataset), args.world_size)
+            trues = distributed_concat(torch.cat(trues, dim=0), len(val_loader.dataset), args.world_size)
         else:
             predictions = torch.cat(predictions, dim=0)
             trues = torch.cat(trues, dim=0)
@@ -182,13 +196,13 @@ def evaluate(epoch, model, loader, device, args, criterion_cls, return_pred=Fals
     return total_loss/total_num
 
 
-def predict(model, train_data, args):
+def predict(model, data_loader, args):
     model.eval()
     predictions = []
     with torch.no_grad():
-        for i in range(0, train_data['gene_ids'].shape[0], args.batch_size):
-            input_gene_ids = train_data["gene_ids"][i:i+args.batch_size, :].to(args.device)
-            input_values = train_data["values"][i:i+args.batch_size, :].to(args.device)
+        for batch_data in data_loader:
+            input_gene_ids = batch_data["gene_ids"].to(args.device)
+            input_values = batch_data["values"].to(args.device)
             src_key_padding_mask = input_gene_ids.eq(args.pad_value)
             with torch.cuda.amp.autocast(enabled=True):
                 output_dict = model(

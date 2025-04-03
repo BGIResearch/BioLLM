@@ -116,7 +116,7 @@ class DataHandler(ABC):
         if self.vocab is None:
             raise Exception("No vocabulary, please set vocabulary first")
         adata.var['is_in_vocab'] = [1 if gene in self.vocab else 0 for gene in adata.var_names]
-        self.logger.info(f'match {np.sum(adata.var["is_in_vocab"])}/{adata.var.shape[0]} genes in vocab of size {adata.var.shape[0]}')
+        self.logger.info(f'match {np.sum(adata.var["is_in_vocab"])}/{adata.var.shape[0]} genes in vocab of size {len(self.vocab)}')
         adata = adata[:, adata.var["is_in_vocab"] >= 0].copy()
         return adata
 
