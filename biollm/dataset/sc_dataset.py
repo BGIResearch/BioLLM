@@ -74,9 +74,9 @@ class ScbertDataset(Dataset):
         full_seq = torch.cat((full_seq, torch.tensor([0])))
         if self.label is not None:
             seq_label = self.label[rand_start]
+            return full_seq, seq_label
         else:
-            seq_label = None
-        return full_seq, seq_label
+            return full_seq
 
     def __len__(self):
         """

@@ -16,6 +16,7 @@ from torch.nn.parallel import DistributedDataParallel
 from biollm.trainer import anno_scgpt_train, anno_scbert_train
 from biollm.evaluate.bm_metrices_anno import compute_metrics
 import pickle
+from biollm.algorithm.annotation import ScbertClassification
 
 
 class ReplicateAnno(BioTask):
@@ -52,13 +53,21 @@ class ReplicateAnno(BioTask):
                                                        batch_size=self.args.batch_size,
                                                        obs_id_output=obs_id_output,
                                                        ddp_train=ddp_train, shuffle=shuffle, drop_last=drop_last)
+        elif self.args.model_used == 'scbert':
+            data_loader = self.load_obj.get_dataloader(adata=adata, var_key=self.args.var_key, obs_key=obs_key, n_hvg=0,
+                                                       bin_num=self.args.n_bins, batch_size=self.args.batch_size,
+                                                       ddp_train=ddp_train, obs_id_output=obs_id_output,
+                                                       shuffle=shuffle, drop_last=drop_last)
         return data_loader
 
     def init_model_for_finetune(self, labels_num):
         if self.args.model_used == 'scgpt':
             self.args.n_cls = labels_num
             self.model = self.load_model()
-
+        if self.args.model_used == 'scbert':
+            self.model.to_out = ScbertClassification(h_dim=128,
+                                                     class_num=labels_num,
+                                                     max_seq_len=self.args.max_seq_len, dropout=0.)
         if self.args.model_used != 'geneformer':
             if self.args.distributed:
                 self.model = DistributedDataParallel(self.model, device_ids=[self.args.local_rank],
@@ -117,7 +126,8 @@ class ReplicateAnno(BioTask):
         adata = sc.read_h5ad(self.args.input_file)
         trainer_module = {
             'scgpt': anno_scgpt_train,
-            'scbert': anno_scbert_train
+            'scbert': anno_scbert_train,
+            # 'gf':
         }
         if self.args.finetune:
             self.train(adata, trainer_module)
@@ -133,6 +143,6 @@ class ReplicateAnno(BioTask):
 
 
 if __name__ == '__main__':
-    config_file = '/home/share/huadjyin/home/s_qiuping1/workspace/BioLLM1/biollm/config/anno/scgpt_annotation.toml'
+    config_file = '/home/share/huadjyin/home/s_qiuping1/workspace/BioLLM1/biollm/config/anno/scbert.toml'
     obj = ReplicateAnno(config_file)
     obj.run()

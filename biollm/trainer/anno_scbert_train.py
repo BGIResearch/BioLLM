@@ -52,12 +52,20 @@ def train(model, train_loader, val_loader, args, wandb=None):
         for index, (data, labels) in enumerate(train_loader):
             index += 1
             data, labels = data.to(device), labels.to(device)
-            if index % args.GRADIENT_ACCUMULATION != 0:
-                with model.no_sync():
+            if args.distributed:
+                if index % args.GRADIENT_ACCUMULATION != 0:
+                    with model.no_sync():
+                        logits = model(data)
+                        loss = loss_fn(logits, labels)
+                        loss.backward()
+                if index % args.GRADIENT_ACCUMULATION == 0:
                     logits = model(data)
                     loss = loss_fn(logits, labels)
                     loss.backward()
-            if index % args.GRADIENT_ACCUMULATION == 0:
+                    torch.nn.utils.clip_grad_norm_(model.parameters(), int(1e6))
+                    optimizer.step()
+                    optimizer.zero_grad()
+            else:
                 logits = model(data)
                 loss = loss_fn(logits, labels)
                 loss.backward()
@@ -89,7 +97,7 @@ def train(model, train_loader, val_loader, args, wandb=None):
         if args.distributed:
             dist.barrier()
         scheduler.step()
-        val_loss = evaluate(i, model, val_loader, loss_fn, device, args, local_rank, world_size, wandb)
+        val_loss = evaluate(i, model, val_loader, loss_fn, args, wandb, False)
         if val_loss < best_val_loss:
             best_val_loss = val_loss
             best_model = copy.deepcopy(model)

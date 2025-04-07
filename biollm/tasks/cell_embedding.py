@@ -86,8 +86,9 @@ if __name__ == "__main__":
 
     files = [
         # '/home/share/huadjyin/home/s_qiuping1/workspace/BioLLM1/biollm/config/embeddings/cell_emb/scgpt_1200/liver.toml',
-        '/home/share/huadjyin/home/s_qiuping1/workspace/BioLLM1/biollm/config/embeddings/cell_emb/scgpt_1200/liver.toml',
-        '/home/share/huadjyin/home/s_qiuping1/workspace/BioLLM1/biollm/config/embeddings/cell_emb/scgpt_1200/kidney.toml',
+        # '/home/share/huadjyin/home/s_qiuping1/workspace/BioLLM1/biollm/config/embeddings/cell_emb/scgpt_1200/liver.toml',
+        # '/home/share/huadjyin/home/s_qiuping1/workspace/BioLLM1/biollm/config/embeddings/cell_emb/scgpt_1200/kidney.toml',
+        '/home/share/huadjyin/home/s_qiuping1/workspace/BioLLM1/biollm/config/embeddings/cell_emb/scbert/blood.toml',
     ]
 
     for i in files:

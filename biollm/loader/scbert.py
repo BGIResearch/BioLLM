@@ -18,7 +18,7 @@ from scipy.sparse import issparse
 import pickle as pkl
 import torch
 from tqdm import tqdm
-
+from biollm.data_preprocess.scbert_handler import ScbertHandler
 
 class Scbert(LoaderBase):
     """
@@ -43,7 +43,7 @@ class Scbert(LoaderBase):
             args (Namespace): Arguments object with settings for model, device, and file paths.
         """
         super(Scbert, self).__init__(args)
-        self.num_tokens = args.bin_num
+        self.num_tokens = args.n_bins
         self.max_seq_len = args.max_seq_len
         self.use_g2v = args.use_g2v
         self.g2v_file = args.g2v_file
@@ -52,6 +52,7 @@ class Scbert(LoaderBase):
         self.gene2idx = self.get_gene2idx()
         self.init_model()
         self.model = self.model.to(self.args.device)
+        self.data_handler = ScbertHandler(self.args.vocab_file)
 
     def load_model(self):
         """
@@ -119,6 +120,26 @@ class Scbert(LoaderBase):
         self.logger.info(f"Total pretrain-model Encoder Params {model_param_count}")
         self.logger.info(f"The pretrain_model Encoder Params for training in finetune after freezon: {ft_param_count}")
 
+    def get_dataloader(self,
+                       adata,
+                       var_key,
+                       obs_key,
+                       n_hvg,
+                       bin_num,
+                       batch_size,
+                       ddp_train,
+                       shuffle,
+                       drop_last,
+                       num_workers=1,
+                       obs_id_output=None,
+                       ):
+        adata = self.data_handler.preprocess(adata, var_key, obs_key, obs_id_output, n_hvg)
+        if obs_key:
+            dataset = self.data_handler.make_dataset(adata, bin_num=bin_num, obs_id_key=f'{obs_key}_id')
+        else:
+            dataset = self.data_handler.make_dataset(adata, bin_num=bin_num, obs_id_key=None)
+        dataloader = self.data_handler.make_dataloader(dataset, batch_size, ddp_train, shuffle, drop_last, num_workers)
+        return dataloader
 
     def get_gene_expression_embedding(self, adata, pool='mean'):
         """
@@ -132,11 +153,12 @@ class Scbert(LoaderBase):
             np.ndarray: Gene expression embeddings as a NumPy array.
         """
         self.logger.info("start to get gene expression!")
-        dataset, _ = self.load_dataset(adata, split_data=False)
-        data_loader = self.get_dataloader(dataset, random_sample=False, ddp=self.args.distributed)
+        data_loader = self.get_dataloader(adata=adata, var_key=self.args.var_key, obs_key=None, n_hvg=0,
+                                          bin_num=self.args.n_bins, batch_size=self.args.batch_size, ddp_train=False,
+                                          shuffle=False, drop_last=False)
         with torch.no_grad(), torch.cuda.amp.autocast(enabled=True):
             pool_emb = torch.zeros((len(self.gene2idx), self.args.embsize)).to(self.args.device)
-            for index, (data, _) in enumerate(data_loader):
+            for index, data in enumerate(data_loader):
                 data = data.to(self.args.device)
                 cell_encode_x = self.model(data, return_encodings=True)  # [batch size, max_seq_len, dim]
                 cell_encode_x = cell_encode_x[:, :-1, :]
@@ -163,11 +185,12 @@ class Scbert(LoaderBase):
             np.ndarray: Cell embeddings as a NumPy array.
         """
         self.logger.info("start to get cell embedding!")
-        dataset, _ = self.load_dataset(adata, split_data=False)
-        data_loader = self.get_dataloader(dataset, random_sample=False, ddp=self.args.distributed)
+        data_loader = self.get_dataloader(adata=adata, var_key=self.args.var_key, obs_key=None, n_hvg=0,
+                                          bin_num=self.args.n_bins, batch_size=self.args.batch_size, ddp_train=False,
+                                          shuffle=False, drop_last=False)
         with torch.no_grad(), torch.cuda.amp.autocast(enabled=True):
             cell_embeddings = []
-            for index, (data, _) in tqdm(enumerate(data_loader), desc='get scbert cell embedding: '):
+            for index, data in tqdm(enumerate(data_loader), desc='get scbert cell embedding: '):
                 data = data.to(self.args.device)
                 cell_encode_x = self.model(data, return_encodings=True)  # [batch size, max_seq_len, dim]
                 if cell_emb_type == 'cls':
@@ -222,24 +245,3 @@ class Scbert(LoaderBase):
         """
         cell_encode_x = self.model(batch_data)
         return cell_encode_x
-
-
-if __name__ == '__main__':
-    from biollm.utils.utils import load_config
-    import scanpy as sc
-
-    config_file = '../config/embeddings/scbert_emb.toml'
-    configs = load_config(config_file)
-    adata = sc.read_h5ad(configs.input_file)
-    adata = adata[0:100, :]
-    obj = Scbert(configs)
-    print(obj.args)
-    if 'gene_name' not in adata.var:
-        adata.var['gene_name'] = adata.var.index.values
-    gene_ids = list(obj.get_gene2idx().values())
-    gene_ids = np.array(gene_ids)
-    gene_ids = torch.tensor(gene_ids, dtype=torch.long).to(configs.device)
-    emb = obj.get_embedding(obj.args.emb_type, adata, gene_ids)
-    print('embedding shape:', emb.shape)
-    with open(obj.args.output_dir + f'/scbert_{obj.args.emb_type}_emb.pk', 'wb') as w:
-        pkl.dump(emb, w)

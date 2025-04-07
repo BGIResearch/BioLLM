@@ -2,7 +2,7 @@
 model_file = '/home/share/huadjyin/home/s_qiuping1/workspace/omics_model/bio_model/biollm/case/models/scbert/panglao_pretrain.pth'
 vocab_file = '/home/share/huadjyin/home/s_qiuping1/workspace/omics_model/bio_model/biollm/case/models/scbert/gene_vocab.json'
 g2v_file = '/home/share/huadjyin/home/s_qiuping1/workspace/omics_model/bio_model/biollm/case/models/scbert//gene2vec_16906.npy'
-bin_num = 7
+n_bins = 7
 max_seq_len = 16907
 use_g2v = true
 embsize = 200
@@ -18,6 +18,6 @@ do_preprocess = true
 ## cell embedding
 model_used = "scbert"
 emb_type = 'cell'
-cell_emb_type='mean' # cls/ mean/ sum
-label_key = "cell_type"
-gene_symbol_key='feature_name'
+cell_emb_type='cls' # cls/ mean/ sum
+var_key='feature_name' # feature_name
+obs_key='cell_type'

@@ -102,3 +102,10 @@ class ScbertHandler(DataHandler):
         label = adata.obs[obs_id_key] if obs_id_key else None
         dataset = ScbertDataset(data, bin_num, label)
         return dataset
+
+    def preprocess(self, adata, var_key, obs_key, obs_id_output, n_hvg, normalize_total=1e4):
+        adata = self.check_adata(adata, var_key, obs_key, obs_id_output)
+        adata = self.filter_genes(adata)
+        adata = self.merge_adata(adata)
+        adata = self.normalize_data(adata, n_hvg, normalize_total)
+        return adata
