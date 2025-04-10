@@ -13,7 +13,6 @@ label_key = 'celltype'
 var_key = 'gene_name'
 append_cls = true
 distributed = false
-#finetune = false
 finetune = true
 device = 'cuda:3'
 mask_ratio = 0.0

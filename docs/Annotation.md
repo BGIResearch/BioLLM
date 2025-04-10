@@ -3,85 +3,41 @@
 ### 1. Prediction
 #### scGPT:
 ```python
-from biollm.task.annotation.anno_task_scgpt import AnnoTaskScgpt
-
-
-finetune = True
-if finetune:
-    config_file = './configs/annotation/scgpt_ft.toml'
-    task = AnnoTaskScgpt(config_file)
-    task.run()
-else:
-    try:
-        config_file = f'./configs/annotation/scgpt_train.toml'
-        task = AnnoTaskScgpt(config_file)
-        task.run()
-    except Exception as e:
-        print('error:', e)
+from biollm.tasks.annotation.replicate_anno import ReplicateAnno
+config_file = './config/anno/scgpt.toml'
+obj = ReplicateAnno(config_file)
+obj.run()
 
 ```
 
 #### Geneformer:
 ```python
-from biollm.task.annotation.anno_task_gf import AnnoTask
-
-
-finetune = True
-if finetune:
-    config_file = './configs/annotation/gf_ft.toml'
-    task = AnnoTask(config_file)
-    task.run()
-else:
-    try:
-        config_file = f'./configs/annotation/gf_train.toml'
-        task = AnnoTask(config_file)
-        task.run()
-    except Exception as e:
-        print('error:', e)
+from biollm.tasks.annotation.replicate_anno import ReplicateAnno
+config_file = './config/anno/geneformer.toml'
+obj = ReplicateAnno(config_file)
+obj.run()
 
 ```
 
 #### scFoundation:
 ```python
-from biollm.task.annotation.anno_task_scf import AnnoTaskScf
-
-
-finetune = True
-if finetune:
-    config_file = './configs/annotation/scf_ft.toml'
-    task = AnnoTaskScf(config_file)
-    task.run()
-else:
-    try:
-        config_file = f'./configs/annotation/scf_train.toml'
-        task = AnnoTaskScf(config_file)
-        task.run()
-    except Exception as e:
-        print('error:', e)
+from biollm.tasks.annotation.replicate_anno import ReplicateAnno
+config_file = './config/anno/scfoundation.toml'
+obj = ReplicateAnno(config_file)
+obj.run()
 
 ```
 
 #### scBERT:
 ```python
-from biollm.task.annotation.anno_task_scbert import AnnoTaskScbert
-
-
-finetune = True
-if finetune:
-    config_file = './configs/annotation/scbert_ft.toml'
-    task = AnnoTaskScbert(config_file)
-    task.run()
-else:
-    try:
-        config_file = f'./configs/annotation/scbert_train.toml'
-        task = AnnoTaskScbert(config_file)
-        task.run()
-    except Exception as e:
-        print('error:', e)
+from biollm.tasks.annotation.replicate_anno import ReplicateAnno
+config_file = './config/anno/scbert.toml'
+obj = ReplicateAnno(config_file)
+obj.run()
 
 ```
 
-Note: The config directory can be found in the biollm/docs/. Users can modify the corresponding parameters based on the path of their own input and output.
+Note: The config directory can be found in the biollm/config/. Users can modify the corresponding parameters based on the path of their own input and output.
 
 ### 2. Evaluation
 #### scGPT:

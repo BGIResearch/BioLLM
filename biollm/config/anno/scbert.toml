@@ -17,7 +17,7 @@ batch_size = 8
 GRADIENT_ACCUMULATION = 60
 UNASSIGN_THRES = 0.0
 # task params, user setting for the task
-device = 'cuda:1'
+device = 'cuda:2'
 distributed = false
 finetune = true
 

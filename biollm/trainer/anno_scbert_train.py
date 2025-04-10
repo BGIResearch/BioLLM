@@ -23,7 +23,7 @@ def train(model, train_loader, val_loader, args, wandb=None):
     local_rank = args.local_rank
     torch.cuda.set_device(local_rank)
     device = torch.device("cuda", local_rank)
-    is_master = local_rank == 0
+    is_master = local_rank == 0 if args.distributed else True
     optimizer = Adam(model.parameters(), lr=args.lr)
     scheduler = CosineAnnealingWarmupRestarts(
         optimizer,
@@ -72,6 +72,7 @@ def train(model, train_loader, val_loader, args, wandb=None):
                 torch.nn.utils.clip_grad_norm_(model.parameters(), int(1e6))
                 optimizer.step()
                 optimizer.zero_grad()
+            # print(index,  loss)
             running_loss += loss.item()
             softmax = nn.Softmax(dim=-1)
             final = softmax(logits)

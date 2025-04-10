@@ -194,10 +194,11 @@ class DrugSensitivity(BioTask):
 
 
 if __name__ == "__main__":
+    config_dir = '/home/share/huadjyin/home/s_qiuping1/hanyuxuan/biollm/config/drug/'
     with tempfile.TemporaryDirectory() as tmp_dir:
         model_select = 'geneformer'    # None, scgpt, scbert, scfoundation, geneformer, scmamba
         if model_select is not None:
-            config_file = f'/home/share/huadjyin/home/s_qiuping1/hanyuxuan/biollm/config/drug/{model_select}_drug.toml'
+            config_file = f'/home/share/huadjyin/home/s_qiuping1/workspace/BioLLM1/biollm/config/drug/{model_select}_drug.toml'
         else:
             config_file = '/home/share/huadjyin/home/s_qiuping1/hanyuxuan/biollm/config/drug/drug.toml'
         obj = DrugSensitivity(config_file)

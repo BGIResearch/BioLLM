@@ -33,6 +33,12 @@ Welcome to the documentation for BioLLM,  a standardized framework designed to f
 
 .. toctree::
    :maxdepth: 2
+   :caption: Release:
+
+   release
+
+.. toctree::
+   :maxdepth: 2
    :caption: References:
 
    download

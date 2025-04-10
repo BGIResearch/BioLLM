@@ -26,10 +26,6 @@ class CellEmbedding(BioTask):
     def run(self):
         # get cell embedding
         adata = self.adata
-        if self.args.model_used not in ['scgpt', 'scbert', 'scfoundation', 'geneformer'] and not self.args.var_key:
-            adata.var[self.args.var_key] = adata.var_names.values
-            if 'development_stage_ontology_term_id' not in adata.obs_names:
-                adata.obs['development_stage_ontology_term_id'] = 'unknown'
         if self.args.var_key:
             adata.var_names = adata.var[self.args.var_key].values
 
@@ -53,7 +49,7 @@ class CellEmbedding(BioTask):
         scores = cluster_metrics(adata.obsm['X_emb'], y_pred=y_pred, y_true=y_true)
         with open(self.args.output_dir + '/cluster_metrics.pk', 'wb') as fd:
             pickle.dump(scores, fd)
-        """ 绘制 UMAP 聚类结果和真实细胞类型分布 """
+
         fig, axes = plt.subplots(1, 2, figsize=(12, 5))
         sc.tl.umap(adata, min_dist=0.3)
         # UMAP with Leiden clusters
@@ -85,10 +81,10 @@ if __name__ == "__main__":
     # config_file = sys.argv[1]
 
     files = [
-        # '/home/share/huadjyin/home/s_qiuping1/workspace/BioLLM1/biollm/config/embeddings/cell_emb/scgpt_1200/liver.toml',
-        # '/home/share/huadjyin/home/s_qiuping1/workspace/BioLLM1/biollm/config/embeddings/cell_emb/scgpt_1200/liver.toml',
-        # '/home/share/huadjyin/home/s_qiuping1/workspace/BioLLM1/biollm/config/embeddings/cell_emb/scgpt_1200/kidney.toml',
-        '/home/share/huadjyin/home/s_qiuping1/workspace/BioLLM1/biollm/config/embeddings/cell_emb/scbert/blood.toml',
+        # '/home/share/huadjyin/home/s_qiuping1/workspace/BioLLM1/biollm/config/embeddings/cell_emb/scgpt/liver.toml',
+        # '/home/share/huadjyin/home/s_qiuping1/workspace/BioLLM1/biollm/config/embeddings/cell_emb/scgpt/liver.toml',
+        # '/home/share/huadjyin/home/s_qiuping1/workspace/BioLLM1/biollm/config/embeddings/cell_emb/scgpt/kidney.toml',
+        '/home/share/huadjyin/home/s_qiuping1/workspace/BioLLM1/biollm/config/embeddings/gene_exp_emb/scgpt/blood.toml',
     ]
 
     for i in files:

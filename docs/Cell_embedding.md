@@ -48,126 +48,40 @@ This ensures that each model's strengths are effectively leveraged for generatin
 #### scGPT:
 
 ```python
-from biollm.utils.utils import load_config
-import scanpy as sc
-import pandas as pd
-import numpy as np
-import os
-import pickle
-from biollm.base.load_scgpt import LoadScgpt
-
-
-def scgpt(adata, output_dir):
-    config_file = './configs/zero_shots/scgpt_cell_emb.toml'
-    configs = load_config(config_file)
-    obj = LoadScgpt(configs)
-    adata = adata[:, adata.var_names.isin(obj.get_gene2idx().keys())].copy()
-    obj.model = obj.model.to(configs.device)
-    emb = obj.get_embedding(configs.emb_type, adata=adata)
-    print('embedding shape:', emb.shape)
-    scg_cell_emb = pd.DataFrame(emb, index=adata.obs_names)
-    cell_emb_file = os.path.join(output_dir, "scg_cell_emb.pkl")
-    with open(cell_emb_file, 'wb') as file:
-        pickle.dump(np.array(scg_cell_emb), file)
-
-data_path = './liver.h5ad'
-output_dir = './output'
-adata = sc.read_h5ad(data_path)
-scgpt(adata, output_dir)
+from biollm.tasks.cell_embedding import CellEmbedding
+config_file = './config/embeddings/cell_emb/scgpt/liver.toml'
+obj = CellEmbedding(config_file)
+obj.run()
 ```
 
 #### Geneformer:
 
 ```python
-from biollm.utils.utils import load_config
-import scanpy as sc
-import pandas as pd
-import numpy as np
-from biollm.base.load_geneformer import LoadGeneformer
-import os
-import pickle
-
-
-def geneformer(adata, output_dir):
-    config_file = './configs/zero_shots/geneformer_cell_emb.toml'
-    configs = load_config(config_file)
-    obj = LoadGeneformer(configs)
-    obj.model = obj.model.to(configs.device)
-    emb = obj.get_embedding(obj.args.emb_type, adata=adata)
-    print('embedding shape:', emb.shape)
-    gf_cell_emb = pd.DataFrame(emb, index=adata.obs_names)
-    cell_emb_file = os.path.join(output_dir, "gf_cell_emb.pkl")
-    with open(cell_emb_file, 'wb') as file:
-        pickle.dump(np.array(gf_cell_emb), file)
-
-data_path = './liver.h5ad'
-output_dir = './output'
-adata = sc.read_h5ad(data_path)
-geneformer(adata, output_dir)
+from biollm.tasks.cell_embedding import CellEmbedding
+config_file = './config/embeddings/cell_emb/gf/liver.toml'
+obj = CellEmbedding(config_file)
+obj.run()
 ```
 
 #### scFoundation:
 
 ```python
-from biollm.utils.utils import load_config
-import scanpy as sc
-import pandas as pd
-import numpy as np
-from biollm.base.load_scfoundation import LoadScfoundation
-import os
-import pickle
-
-
-def scfoundation(adata, output_dir):
-    config_file = './configs/zero_shots/scfoundation_cell_emb.toml'
-    configs = load_config(config_file)
-    obj = LoadScfoundation(configs)
-    obj.model = obj.model.to(configs.device)
-    emb = obj.get_embedding(configs.emb_type, gene_ids=None, adata=adata)
-    print('embedding shape:', emb.shape)
-    scf_cell_emb = pd.DataFrame(emb, index=adata.obs_names)
-
-    cell_emb_file = os.path.join(output_dir, "scf_cell_emb.pkl")
-    with open(cell_emb_file, 'wb') as file:
-        pickle.dump(np.array(scf_cell_emb), file)
-
-data_path = './liver.h5ad'
-output_dir = './output'
-adata = sc.read_h5ad(data_path)
-scfoundation(adata, output_dir)
+from biollm.tasks.cell_embedding import CellEmbedding
+config_file = './config/embeddings/cell_emb/scf/liver.toml'
+obj = CellEmbedding(config_file)
+obj.run()
 ```
 
 #### scBERT:
 
 ```python
-from biollm.utils.utils import load_config
-import scanpy as sc
-import pandas as pd
-import numpy as np
-from biollm.base.load_scbert import LoadScbert
-import os
-import pickle
-
-
-def scbert(adata, output_dir):
-    config_file = './configs/zero_shots/scbert_cell_emb.toml'
-    configs = load_config(config_file)
-    obj = LoadScbert(configs)
-    obj.model = obj.model.to(configs.device)
-    emb = obj.get_embedding(configs.emb_type, adata=adata)
-    print('embedding shape:', emb.shape)
-    scb_cell_emb = pd.DataFrame(emb, index=adata.obs_names)
-    cell_emb_file = os.path.join(output_dir, "scbert_cell_emb.pkl")
-    with open(cell_emb_file, 'wb') as file:
-        pickle.dump(np.array(scb_cell_emb), file)
-
-data_path = './liver.h5ad'
-output_dir = './output'
-adata = sc.read_h5ad(data_path)
-scbert(adata, output_dir)
+from biollm.tasks.cell_embedding import CellEmbedding
+config_file = './config/embeddings/cell_emb/scbert/liver.toml'
+obj = CellEmbedding(config_file)
+obj.run()
 ```
 
-Note: The config directory can be found in the biollm/docs/. 
+Note: The config directory can be found in the biollm/config. 
 
 ### 2. Evaluation
 ```python
