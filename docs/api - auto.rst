@@ -1,46 +1,53 @@
 Base Modules
 =============
 
-biollm.base.bio\_task
+biollm.tasks.bio\_task
 -----------
 
-.. automodule:: biollm.base.bio_task
+.. automodule:: biollm.tasks.bio_task
    :members:
    :undoc-members:
    :show-inheritance:
 
-biollm.base.load\_llm
+biollm.loader.loader\_base
 --------------------------
 
-.. automodule:: biollm.base.load_llm
+.. automodule:: biollm.loader.loader_base
    :members:
    :undoc-members:
    :show-inheritance:
 
-biollm.base.load\_scbert
+biollm.loader.scbert
 --------------------------
-.. automodule:: biollm.base.load_scbert
+.. automodule:: biollm.loader.scbert
    :members:
    :undoc-members:
    :show-inheritance:
 
-biollm.base.load\_scfoundation
+biollm.loader.scfoundation
 -------------------------------
-.. automodule:: biollm.base.load_scfoundation
+.. automodule:: biollm.loader.scfoundation
    :members:
    :undoc-members:
    :show-inheritance:
 
-biollm.base.load\_scgpt
+biollm.loader.scgpt
 -------------------------------
-.. automodule:: biollm.base.load_scgpt
+.. automodule:: biollm.loader.scgpt
    :members:
    :undoc-members:
    :show-inheritance:
 
-biollm.base.load\_geneformer
+biollm.loader.geneformer
 -------------------------------
-.. automodule:: biollm.base.load_geneformer
+.. automodule:: biollm.loader.geneformer
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+biollm.loader.cellplm
+-------------------------------
+.. automodule:: biollm.loader.cellplm
    :members:
    :undoc-members:
    :show-inheritance:

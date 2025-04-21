@@ -115,10 +115,25 @@ class DataHandler(ABC):
         """
         if self.vocab is None:
             raise Exception("No vocabulary, please set vocabulary first")
+        if not adata.var.index.isin(list(self.gene2idx.keys())).any():
+            print('Automatically converting gene symbols to ensembl ids...')
+            adata.var.index = self.symbol_to_ensembl(adata.var.index.tolist())
+            if (adata.var.index == '0').all():
+                raise ValueError(
+                    'None of AnnData.var.index found in pre-trained gene set.')
+            adata.var_names_make_unique()
         adata.var['is_in_vocab'] = [1 if gene in self.vocab else 0 for gene in adata.var_names]
         self.logger.info(f'match {np.sum(adata.var["is_in_vocab"])}/{adata.var.shape[0]} genes in vocab of size {len(self.vocab)}')
-        adata = adata[:, adata.var["is_in_vocab"] >= 0].copy()
+        adata = adata[:, adata.var["is_in_vocab"] > 0].copy()
         return adata
+
+    @staticmethod
+    def symbol_to_ensembl(gene_list):
+        import mygene
+        mg = mygene.MyGeneInfo()
+        return mg.querymany(gene_list, scopes='symbol', fields='ensembl.gene', as_dataframe=True,
+                            species='human').reset_index().drop_duplicates(subset='query')['ensembl.gene'].fillna(
+            '0').tolist()
 
     def normalize_data(self, adata, n_hvg=0, batch_key=None, normalize_total=1e4):
         """
@@ -185,7 +200,7 @@ class DataHandler(ABC):
         return adata
 
     @abstractmethod
-    def make_dataset(self, adata, **kwargs):
+    def make_dataset(self, *args, **kwargs):
         """
         Converts an AnnData object into a PyTorch Dataset.
 

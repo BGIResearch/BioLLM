@@ -81,7 +81,8 @@ class GrnTask(BioTask):
 
 if __name__ == "__main__":
     import sys
-    config_file = sys.argv[1]
+    # config_file = sys.argv[1]
+    config_file = '/home/share/huadjyin/home/s_qiuping1/workspace/BioLLM1/biollm/config/embeddings/gene_exp_emb/scgpt .toml'
     obj = GrnTask(config_file)
     obj.run()
 

@@ -33,3 +33,4 @@ This version introduces a comprehensive refactor of the project structure and th
 - **Cell Annotation Task Refactor**: Improved task execution logic and introduced a unified script interface to run different models consistently.
 - **Cell Embedding Task**: Added new analysis scripts for evaluating cell embeddings, with support for multiple evaluation metrics.
 - **Gene Regulatory Task**: Added dedicated analysis scripts and refactored the gene regulatory network evaluation logic for better performance and clarity.
+- **Drug Sensitivity Task**: Improved task execution logic and introduced a unified script interface to run different models consistently.

@@ -9,7 +9,8 @@
 from torch.utils.data import Dataset
 import torch
 from scipy.sparse import issparse
-from typing import Dict
+from typing import Dict, Tuple
+from torch import Tensor
 
 
 class ScbertDataset(Dataset):
@@ -142,3 +143,79 @@ class ScgptDataset(Dataset):
                   corresponding to those elements for the given index `idx`.
         """
         return {k: v[idx] for k, v in self.data.items()}
+
+class GeneformerDataset(Dataset):
+    """
+    A custom dataset class for handling single-cell transcriptomics data for use in the Geneformer model.
+
+    This class is designed to handle data in a dictionary format, where each key represents a different data
+    element (e.g., gene IDs, expression values, etc.). It allows for easy indexing and batching of data for
+    model training or inference.
+
+    Args:
+        data (Dict[str, torch.Tensor]): A dictionary containing data for the dataset. The dictionary should have
+                                         keys as strings and values as tensors (e.g., "input_ids" -> torch.Tensor).
+
+    Attributes:
+        data (Dict[str, torch.Tensor]): The data dictionary containing different tensors that represent the dataset.
+
+    Methods:
+        __len__():
+            Returns the number of data points (i.e., the length of the dataset).
+
+        __getitem__(idx):
+            Retrieves the data at the given index `idx` and returns it as a dictionary of tensors.
+    """
+
+    def __init__(self, data: Dict[str, torch.Tensor]):
+        """
+        Initializes the ScgptDataset with a dictionary of tensors.
+
+        Args:
+            data (Dict[str, torch.Tensor]): A dictionary where keys are data elements (e.g., "input_ids") and
+                                             values are tensors corresponding to those data elements.
+        """
+        self.data = data
+
+    def __len__(self):
+        """
+        Returns the number of data points in the dataset.
+
+        Returns:
+            int: The length of the dataset, which corresponds to the number of data points (i.e., the length of "input_ids").
+        """
+        return self.data["length"]
+
+    def __getitem__(self, idx):
+        """
+        Retrieves the data at the specified index `idx`.
+
+        Args:
+            idx (int): The index of the data point to retrieve.
+
+        Returns:
+            dict: A dictionary where the keys are data elements (e.g., "gene_ids") and the values are the tensors
+                  corresponding to those elements for the given index `idx`.
+        """
+        return {k: v[idx] for k, v in self.data.items()}
+
+
+class ScfoundationDataset(Dataset[Tuple[Tensor, ...]]):
+    r"""Dataset wrapping tensors.
+
+    Each sample will be retrieved by indexing tensors along the first dimension.
+
+    Args:
+        *tensors (Tensor): tensors that have the same size of the first dimension.
+    """
+    tensors: Tuple[Tensor, ...]
+
+    def __init__(self, *tensors: Tensor) -> None:
+        assert all(tensors[0].size(0) == tensor.size(0) for tensor in tensors), "Size mismatch between tensors"
+        self.tensors = tensors
+
+    def __getitem__(self, index):
+        return tuple(tensor[index] for tensor in self.tensors)
+
+    def __len__(self):
+        return self.tensors[0].size(0)

@@ -17,7 +17,7 @@ import torch
 class ScgptHandler(DataHandler):
     def __init__(self, vocab_path):
         """
-        Initializes the ScbertHandler with the given H5AD file and vocabulary.
+        Initializes the ScgptHandler with the given H5AD file and vocabulary.
 
         Args:
             adata (str): the AnnData obj.

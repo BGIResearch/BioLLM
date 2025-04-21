@@ -2,42 +2,61 @@
 
 ### 1. Prediction
 #### scGPT:
+
 ```python
-from biollm.tasks.annotation.replicate_anno import ReplicateAnno
+from biollm.tasks.cell_annotation import CellAnnotation
+
 config_file = './config/anno/scgpt.toml'
-obj = ReplicateAnno(config_file)
+obj = CellAnnotation(config_file)
 obj.run()
 
 ```
 
 #### Geneformer:
+
 ```python
-from biollm.tasks.annotation.replicate_anno import ReplicateAnno
+from biollm.tasks.cell_annotation import CellAnnotation
+
 config_file = './config/anno/geneformer.toml'
-obj = ReplicateAnno(config_file)
+obj = CellAnnotation(config_file)
 obj.run()
 
 ```
 
 #### scFoundation:
+
 ```python
-from biollm.tasks.annotation.replicate_anno import ReplicateAnno
+from biollm.tasks.cell_annotation import CellAnnotation
+
 config_file = './config/anno/scfoundation.toml'
-obj = ReplicateAnno(config_file)
+obj = CellAnnotation(config_file)
 obj.run()
 
 ```
 
 #### scBERT:
+
 ```python
-from biollm.tasks.annotation.replicate_anno import ReplicateAnno
+from biollm.tasks.cell_annotation import CellAnnotation
+
 config_file = './config/anno/scbert.toml'
-obj = ReplicateAnno(config_file)
+obj = CellAnnotation(config_file)
 obj.run()
 
 ```
 
-Note: The config directory can be found in the biollm/config/. Users can modify the corresponding parameters based on the path of their own input and output.
+#### CellPLM:
+
+```python
+from biollm.tasks.cell_annotation import CellAnnotation
+
+config_file = './config/anno/cellplm_ms.toml'
+obj = CellAnnotation(config_file)
+obj.run()
+
+```
+
+Note: The config directory can be found in the biollm/config/anno. Users can modify the corresponding parameters based on the path of their own input and output.
 
 ### 2. Evaluation
 #### scGPT:

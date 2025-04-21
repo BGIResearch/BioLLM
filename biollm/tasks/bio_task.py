@@ -13,6 +13,7 @@ from biollm.loader.mamba import Scmamba
 from biollm.loader.scbert import Scbert
 from biollm.loader.scfoundation import Scfoundation
 from biollm.loader.geneformer import Geneformer
+from biollm.loader.cellplm import CellPLM
 import scanpy as sc
 from biollm.utils.utils import load_config
 import numpy as np
@@ -57,7 +58,7 @@ class BioTask(object):
         run(self):
             Placeholder for the main task execution method, to be implemented in subclasses.
     """
-    def __init__(self, cfs_file, data_path=None, load_model=True):
+    def __init__(self, cfs_file, data_path=None, load_model=True, labels_num=0):
         """
         Initializes the BioTask instance with configuration, device settings, and model loading.
 
@@ -71,6 +72,8 @@ class BioTask(object):
         """
         self.cfs_file = cfs_file
         self.args = load_config(cfs_file)
+        self.labels_num = labels_num
+
         self.logger = LogManager().logger
         if self.args.device == 'cpu' or self.args.device.startswith('cuda'):
             self.device = torch.device(self.args.device)
@@ -95,6 +98,7 @@ class BioTask(object):
         if 'output_dir' in self.args:
             if not os.path.exists(self.args.output_dir):
                 os.makedirs(self.args.output_dir, exist_ok=True)
+
 
         # if self.model is not None:
         #     self.model = self.model.to(self.device)
@@ -135,10 +139,13 @@ class BioTask(object):
             self.load_obj = Scbert(self.args)
             return self.load_obj.model
         elif self.args.model_used == 'scfoundation':
-            self.load_obj = Scfoundation(args=None, cfs_file=self.cfs_file)
+            self.load_obj = Scfoundation(args=self.args)
             return self.load_obj.model
         elif self.args.model_used == 'geneformer':
-            self.load_obj = Geneformer(self.args)
+            self.load_obj = Geneformer(self.args, self.labels_num)
+            return self.load_obj.model
+        elif self.args.model_used == 'cellplm':
+            self.load_obj = CellPLM(args=self.args)
             return self.load_obj.model
         else:
             raise ValueError(f'{self.args.model_uses} is out of range!')
@@ -153,8 +160,5 @@ class BioTask(object):
         raise NotImplementedError("Not implemented")
 
     def llm_embedding(self, emb_type, adata=None, gene_ids=None):
-        if self.args.model_used not in ['scbert', 'scgpt', 'geneformer', 'scfoundation']:
-            return self.get_bgi_emb(emb_type, adata, gene_ids)
-        else:
-            return self.load_obj.get_embedding(emb_type, adata=adata, gene_ids=gene_ids)
+        return self.load_obj.get_embedding(emb_type, adata=adata, gene_ids=gene_ids)
 

@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 # -*- coding:utf-8 -*-
-# @FileName  :load_scFoundation
-# @Time      :2024/3/20 15:28
-# @Author    :Luni Hu
+# @FileName  :scfoundation.py
+# @Time      :2024/4/15 17:41
+# @Author    :Qianqian Chen
 
 import torch
 import pandas as pd
@@ -18,6 +18,7 @@ from torch.utils.data.distributed import DistributedSampler
 from torch.utils.data.sampler import RandomSampler, SequentialSampler
 from torch.utils.data import DataLoader
 from biollm.utils.preprocess import preprocess_adata
+from biollm.data_preprocess.scfoundation_handler import ScfoundationHandler
 
 
 class Scfoundation(LoaderBase):
@@ -44,6 +45,7 @@ class Scfoundation(LoaderBase):
         self.device = torch.device(self.args.device)
         self.model.to(self.device)
         self.gene2idx = self.get_gene2idx()
+        self.data_handler = ScfoundationHandler(self.args.vocab_file)
 
     def load_model(self):
         """
@@ -107,96 +109,20 @@ class Scfoundation(LoaderBase):
         gene_names = [idx2gene[i] for i in gene_ids]
         return {'gene_emb': emb.detach().cpu().numpy(), 'gene_names': gene_names}
 
+    def get_dataloader(self,
+                       adata,
+                       label_dict,
+                       finetune,
+                       label_key,
+                       for_train,
+                       batch_size,
+                       ddp_train,
+                       shuffle,
+                       drop_last):
+        dataset = self.data_handler.make_dataset(adata,label_dict, finetune=finetune, label_key=label_key, for_train=for_train)
+        dataloader = self.data_handler.make_dataloader(dataset, batch_size, ddp_train, shuffle, drop_last)
+        return dataloader
 
-    def load_data(self, adata=None, max_none_zore=None):
-        """
-        Loads gene expression data and applies sparse selection based on non-zero thresholding.
-
-        Args:
-            adata (AnnData, optional): Annotated data object containing gene expression data.
-            max_none_zore (int, optional): Threshold for non-zero values in gene expression data.
-
-        Returns:
-            pd.DataFrame: Processed gene expression data.
-        """
-        if adata is None:
-            adata = sc.read_h5ad(self.args.input_file)
-        print(adata)
-        idx = adata.obs_names.tolist()
-        col = adata.var_names.tolist()
-        if issparse(adata.X):
-            gexpr_feature = adata.X.toarray()
-        else:
-            gexpr_feature = np.array(adata.X)
-        if max_none_zore:
-            none_zero = gexpr_feature > 0
-            none_zero_num = none_zero.sum(1)
-            index = np.argwhere(none_zero_num > max_none_zore).reshape(-1)
-            for i in index:
-                none_zero_index = np.argwhere(none_zero[i]).reshape(-1)
-                np.random.shuffle(none_zero_index)
-                mask_num = none_zero_num[i] - max_none_zore
-                mask_index = none_zero_index[0: mask_num]
-                gexpr_feature[i][mask_index] = 0
-        gexpr_feature = pd.DataFrame(gexpr_feature, index=idx, columns=col)
-        self.logger.info('covert gene feature into 19264')
-        gene_list = list(self.vocab.get_stoi().keys())
-        gexpr_feature = gexpr_feature.loc[:, gexpr_feature.columns.isin(gene_list)]
-        gexpr_feature, to_fill_columns, var = main_gene_selection(gexpr_feature, gene_list)
-        assert gexpr_feature.shape[1] == 19264
-        return gexpr_feature
-
-    def get_dataloader(self, dataset, batch_size, shuffle=False, ddp_train=False, drop_last=False, num_workers=0):
-        """
-        Constructs a DataLoader for efficient batched data processing.
-
-        Args:
-            dataset (torch.utils.data.Dataset): Dataset to be loaded.
-            batch_size (int): Number of samples per batch.
-            shuffle (bool, optional): Whether to shuffle the data.
-            ddp_train (bool, optional): Whether to use distributed data parallel (DDP) training.
-            drop_last (bool, optional): Whether to drop the last incomplete batch.
-            num_workers (int, optional): Number of subprocesses to use for data loading.
-
-        Returns:
-            DataLoader: DataLoader instance for the dataset.
-        """
-        if ddp_train:
-            sampler = DistributedSampler(dataset)
-        else:
-            sampler = SequentialSampler(dataset) if not shuffle else RandomSampler(dataset)
-        data_loader = DataLoader(
-            dataset=dataset,
-            batch_size=batch_size,
-            drop_last=drop_last,
-            num_workers=num_workers,
-            sampler=sampler,
-        )
-        return data_loader
-
-    def make_encoder_input(self, gexpr_feature, tgthighres):
-        """
-        Constructs encoder input features by combining gene expression data and target resolution.
-
-        Args:
-            gexpr_feature (pd.DataFrame): Gene expression feature data.
-            tgthighres (str): Target resolution information.
-
-        Returns:
-            np.ndarray: Prepared input features for the encoder.
-        """
-        x = gexpr_feature.values
-        totalcount = x.sum(axis=1).reshape(-1, 1)
-        if tgthighres[0] == 'f':
-            pretrain_gene_x = np.concatenate([x, np.log10(totalcount * float(tgthighres[1:])), np.log10(totalcount)], axis=1)
-        elif tgthighres[0] == 'a':
-            pretrain_gene_x = np.concatenate([x, np.log10(totalcount + float(tgthighres[1:])), np.log10(totalcount)], axis=1)
-        elif tgthighres[0] == 't':
-            pretrain_gene_x = np.concatenate([x, np.full_like(totalcount, np.float32(tgthighres[1:])), np.log10(totalcount)], axis=1)
-        else:
-            raise ValueError('tgthighres must be start with f, a or t')
-
-        return pretrain_gene_x
 
     def get_gene_expression_embedding(self, adata, pool='mean'):
         """
@@ -209,8 +135,8 @@ class Scfoundation(LoaderBase):
         Returns:
             np.ndarray: Gene expression embeddings as a NumPy array.
         """
-        df = self.load_data(adata, max_none_zore=self.args.max_none_zero_num)
-        pretrain_gene_x = self.make_encoder_input(df, self.args.tgthighres)
+        df = self.data_handler.load_data(adata, data_path=self.args.input_file, max_none_zore=self.args.max_none_zero_num)
+        pretrain_gene_x = self.data_handler.make_encoder_input(df, self.args.tgthighres)
         self.model.to_final = None
         with torch.no_grad(), torch.cuda.amp.autocast():
             pool_emb = torch.zeros((len(self.gene2idx), 512)).to(self.args.device)
@@ -251,8 +177,8 @@ class Scfoundation(LoaderBase):
         Returns:
             np.ndarray: Cell embeddings as a NumPy array.
         """
-        df = self.load_data(adata, max_none_zore=self.args.max_none_zero_num)
-        pretrain_gene_x = self.make_encoder_input(df, self.args.tgthighres)
+        df = self.data_handler.load_data(adata, data_path=self.args.input_file, max_none_zore=self.args.max_none_zero_num)
+        pretrain_gene_x = self.data_handler.make_encoder_input(df, self.args.tgthighres)
         cell_embeddings = []
         with torch.no_grad(), torch.cuda.amp.autocast():
             for i in tqdm(range(0, pretrain_gene_x.shape[0], self.args.batch_size)):

@@ -81,10 +81,7 @@ if __name__ == "__main__":
     # config_file = sys.argv[1]
 
     files = [
-        # '/home/share/huadjyin/home/s_qiuping1/workspace/BioLLM1/biollm/config/embeddings/cell_emb/scgpt/liver.toml',
-        # '/home/share/huadjyin/home/s_qiuping1/workspace/BioLLM1/biollm/config/embeddings/cell_emb/scgpt/liver.toml',
-        # '/home/share/huadjyin/home/s_qiuping1/workspace/BioLLM1/biollm/config/embeddings/cell_emb/scgpt/kidney.toml',
-        '/home/share/huadjyin/home/s_qiuping1/workspace/BioLLM1/biollm/config/embeddings/gene_exp_emb/scgpt/blood.toml',
+        '/home/share/huadjyin/home/s_qiuping1/workspace/BioLLM1/biollm/config/embeddings/cell_emb/cellplm/gse155468.toml',
     ]
 
     for i in files:
