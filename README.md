@@ -35,6 +35,10 @@ Please use GitHub [issues](https://github.com/BGIResearch/BioLLM/issues) tracker
  - ...
 
 ## Citing BioLLM
+
+If you find **BioLLM** useful in your research, please consider citing our paper:
+
+```bibtex
 @article{qiu2025biollm,
   doi     = {10.1016/j.patter.2025.101326},
   title   = {BioLLM: A standardized framework for integrating and benchmarking single-cell foundation models},
@@ -44,7 +48,7 @@ Please use GitHub [issues](https://github.com/BGIResearch/BioLLM/issues) tracker
   number  = {8},
   year    = {2025}
 }
-
+```
 
 ## Contribution 
 We warmly invite contributions to biollm. If you have suggestions or bug fixes, please feel free to submit a pull request. Additionally, we are open to any issues you might encounter while utilizing biollm.
