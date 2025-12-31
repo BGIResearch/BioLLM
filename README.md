@@ -2,7 +2,7 @@
 
 This is the official github repository for **BioLLM: A Standardized Framework for Integrating and Benchmarking Single-Cell Foundation Models.**
 
-[![Preprint](https://img.shields.io/badge/preprint-available-brightgreen)](https://www.biorxiv.org/content/) &nbsp;
+[![Preprint](https://img.shields.io/badge/preprint-available-brightgreen)](https://www.cell.com/patterns/fulltext/S2666-3899(25)00174-6) &nbsp;
 [![Documentation](https://img.shields.io/badge/docs-available-brightgreen)](https://biollm.readthedocs.io/en/latest/) &nbsp;
 
 
@@ -33,6 +33,18 @@ Please use GitHub [issues](https://github.com/BGIResearch/BioLLM/issues) tracker
  - Document and data issues
  - Feature requirements
  - ...
+
+## Citing BioLLM
+@article{qiu2025biollm,
+  doi     = {10.1016/j.patter.2025.101326},
+  title   = {BioLLM: A standardized framework for integrating and benchmarking single-cell foundation models},
+  author  = {Qiu, Ping and others},
+  journal = {Patterns},
+  volume  = {6},
+  number  = {8},
+  year    = {2025}
+}
+
 
 ## Contribution 
 We warmly invite contributions to biollm. If you have suggestions or bug fixes, please feel free to submit a pull request. Additionally, we are open to any issues you might encounter while utilizing biollm.
